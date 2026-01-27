@@ -6,7 +6,11 @@
   "type": "module",
   "scripts": {
     "build": "rollup -c",
-    "watch": "rollup -c -w --watch.onEnd=\"streamdeck restart wtf.sauhsoj.streamdecker\""
+    "watch": "rollup -c -w --watch.onEnd=\"streamdeck restart wtf.sauhsoj.streamdecker\"",
+    "lint": "eslint src --ext .ts",
+    "lint:fix": "eslint src --ext .ts --fix",
+    "format": "prettier --write src/**/*.ts",
+    "check": "npm run lint && npm run build"
   },
   "keywords": [
     "streamdeck",
@@ -17,12 +21,19 @@
   "license": "MIT",
   "devDependencies": {
     "@elgato/streamdeck": "^2.0.0",
+    "@eslint/js": "^9.39.2",
     "@rollup/plugin-commonjs": "^29.0.0",
     "@rollup/plugin-node-resolve": "^15.2.3",
     "@rollup/plugin-typescript": "^11.1.6",
     "@types/node": "^25.0.10",
+    "@typescript-eslint/eslint-plugin": "^8.54.0",
+    "@typescript-eslint/parser": "^8.54.0",
+    "eslint": "^9.39.2",
+    "eslint-config-prettier": "^10.1.8",
+    "prettier": "^3.8.1",
     "rollup": "^4.9.6",
     "tslib": "^2.6.2",
-    "typescript": "^5.3.3"
+    "typescript": "^5.3.3",
+    "typescript-eslint": "^8.54.0"
   }
 }
