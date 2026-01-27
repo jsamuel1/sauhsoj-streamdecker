@@ -14,6 +14,9 @@ import { cwd } from 'node:process';
 import { randomUUID } from 'node:crypto';
 import { exec } from 'child_process';
 import { promisify } from 'util';
+import { readFile, writeFile, readdir } from 'fs/promises';
+import { homedir } from 'os';
+import { join as join$1 } from 'path';
 
 /**
  * Default language supported by all i18n providers.
@@ -8019,7 +8022,7 @@ typeof SuppressedError === "function" ? SuppressedError : function (error, suppr
     return e.name = "SuppressedError", e.error = error, e.suppressed = suppressed, e;
 };
 
-const execAsync$1 = promisify(exec);
+const execAsync$5 = promisify(exec);
 function setActiveTerminal(app) {
 }
 // AppleScript to focus a terminal app
@@ -8032,7 +8035,7 @@ async function focusTerminal() {
     ];
     for (const app of terminals) {
         try {
-            await execAsync$1(`osascript -e 'tell application "${app}" to activate'`);
+            await execAsync$5(`osascript -e 'tell application "${app}" to activate'`);
             return;
         }
         catch {
@@ -8042,11 +8045,11 @@ async function focusTerminal() {
 }
 // Send keystrokes to the frontmost app
 async function sendKeystroke(key) {
-    await execAsync$1(`osascript -e 'tell application "System Events" to keystroke "${key}"'`);
+    await execAsync$5(`osascript -e 'tell application "System Events" to keystroke "${key}"'`);
 }
 // Send a command followed by enter
 async function sendCommand(cmd) {
-    await execAsync$1(`osascript -e 'tell application "System Events" to keystroke "${cmd}"' -e 'tell application "System Events" to keystroke return'`);
+    await execAsync$5(`osascript -e 'tell application "System Events" to keystroke "${cmd}"' -e 'tell application "System Events" to keystroke return'`);
 }
 
 let FocusKiroAction = (() => {
@@ -8077,7 +8080,7 @@ let FocusKiroAction = (() => {
     return _classThis;
 })();
 
-const execAsync = promisify(exec);
+const execAsync$4 = promisify(exec);
 let LaunchKiroCliAction = (() => {
     let _classDecorators = [action({ UUID: "wtf.sauhsoj.streamdecker.launch-kiro-cli" })];
     let _classDescriptor;
@@ -8095,7 +8098,7 @@ let LaunchKiroCliAction = (() => {
         }
         async onKeyDown(ev) {
             try {
-                await execAsync(`osascript -e '
+                await execAsync$4(`osascript -e '
         tell application "iTerm"
           activate
           tell current window
@@ -8109,6 +8112,212 @@ let LaunchKiroCliAction = (() => {
             }
             catch (err) {
                 streamDeck.logger.error(`Failed to launch kiro-cli: ${err}`);
+                await ev.action.showAlert();
+            }
+        }
+    });
+    return _classThis;
+})();
+
+const execAsync$3 = promisify(exec);
+const RECENT_FILE = join$1(homedir(), ".kiro", "streamdeck-recent-folders.json");
+let LaunchKiroFolderAction = (() => {
+    let _classDecorators = [action({ UUID: "wtf.sauhsoj.streamdecker.launch-kiro-folder" })];
+    let _classDescriptor;
+    let _classExtraInitializers = [];
+    let _classThis;
+    let _classSuper = SingletonAction;
+    (class extends _classSuper {
+        static { _classThis = this; }
+        static {
+            const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
+            __esDecorate(null, _classDescriptor = { value: _classThis }, _classDecorators, { kind: "class", name: _classThis.name, metadata: _metadata }, null, _classExtraInitializers);
+            _classThis = _classDescriptor.value;
+            if (_metadata) Object.defineProperty(_classThis, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+            __runInitializers(_classThis, _classExtraInitializers);
+        }
+        async onWillAppear(ev) {
+            const settings = ev.payload.settings;
+            if (settings.folder) {
+                const name = settings.folder.split("/").pop() || settings.folder;
+                await ev.action.setTitle(name);
+            }
+        }
+        async onDidReceiveSettings(ev) {
+            const settings = ev.payload.settings;
+            if (settings.folder) {
+                const name = settings.folder.split("/").pop() || settings.folder;
+                await ev.action.setTitle(name);
+            }
+        }
+        async onKeyDown(ev) {
+            const settings = ev.payload.settings;
+            const folder = settings.folder;
+            if (!folder) {
+                await ev.action.showAlert();
+                return;
+            }
+            try {
+                await execAsync$3(`osascript -e '
+        tell application "iTerm"
+          activate
+          tell current window
+            create tab with default profile
+            tell current session
+              write text "cd ${folder} && kiro-cli chat"
+            end tell
+          end tell
+        end tell
+      '`);
+                // Update recent folders
+                await this.addToRecent(folder);
+            }
+            catch (err) {
+                streamDeck.logger.error(`Failed to launch kiro-cli: ${err}`);
+                await ev.action.showAlert();
+            }
+        }
+        async addToRecent(folder) {
+            try {
+                let recent = [];
+                try {
+                    const data = await readFile(RECENT_FILE, "utf-8");
+                    recent = JSON.parse(data);
+                }
+                catch {
+                    // File doesn't exist yet
+                }
+                // Add to front, remove duplicates, keep max 10
+                recent = [folder, ...recent.filter((f) => f !== folder)].slice(0, 10);
+                await writeFile(RECENT_FILE, JSON.stringify(recent, null, 2));
+            }
+            catch (err) {
+                streamDeck.logger.error(`Failed to update recent folders: ${err}`);
+            }
+        }
+        static async getRecentFolders() {
+            try {
+                const data = await readFile(RECENT_FILE, "utf-8");
+                return JSON.parse(data);
+            }
+            catch {
+                return [];
+            }
+        }
+    });
+    return _classThis;
+})();
+
+const execAsync$2 = promisify(exec);
+let CycleKiroTabsAction = (() => {
+    let _classDecorators = [action({ UUID: "wtf.sauhsoj.streamdecker.cycle-kiro-tabs" })];
+    let _classDescriptor;
+    let _classExtraInitializers = [];
+    let _classThis;
+    let _classSuper = SingletonAction;
+    (class extends _classSuper {
+        static { _classThis = this; }
+        static {
+            const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
+            __esDecorate(null, _classDescriptor = { value: _classThis }, _classDecorators, { kind: "class", name: _classThis.name, metadata: _metadata }, null, _classExtraInitializers);
+            _classThis = _classDescriptor.value;
+            if (_metadata) Object.defineProperty(_classThis, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+            __runInitializers(_classThis, _classExtraInitializers);
+        }
+        async onKeyDown(_ev) {
+            try {
+                await execAsync$2(`osascript -e '
+        tell application "iTerm"
+          activate
+          tell current window
+            set currentIdx to 0
+            set tabCount to count of tabs
+            set foundKiro to false
+            
+            -- Find current tab index
+            repeat with i from 1 to tabCount
+              if item i of tabs is current tab then
+                set currentIdx to i
+                exit repeat
+              end if
+            end repeat
+            
+            -- Find next kiro-cli tab
+            repeat with offset from 1 to tabCount
+              set nextIdx to ((currentIdx + offset - 1) mod tabCount) + 1
+              tell current session of tab nextIdx
+                if name contains "kiro-cli" then
+                  select tab nextIdx
+                  set foundKiro to true
+                  exit repeat
+                end if
+              end tell
+            end repeat
+          end tell
+        end tell
+      '`);
+            }
+            catch (err) {
+                streamDeck.logger.error(`Failed to cycle tabs: ${err}`);
+            }
+        }
+    });
+    return _classThis;
+})();
+
+const execAsync$1 = promisify(exec);
+let NextAlertTabAction = (() => {
+    let _classDecorators = [action({ UUID: "wtf.sauhsoj.streamdecker.next-alert-tab" })];
+    let _classDescriptor;
+    let _classExtraInitializers = [];
+    let _classThis;
+    let _classSuper = SingletonAction;
+    (class extends _classSuper {
+        static { _classThis = this; }
+        static {
+            const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
+            __esDecorate(null, _classDescriptor = { value: _classThis }, _classDecorators, { kind: "class", name: _classThis.name, metadata: _metadata }, null, _classExtraInitializers);
+            _classThis = _classDescriptor.value;
+            if (_metadata) Object.defineProperty(_classThis, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+            __runInitializers(_classThis, _classExtraInitializers);
+        }
+        async onKeyDown(ev) {
+            try {
+                const result = await execAsync$1(`osascript -e '
+        tell application "iTerm"
+          activate
+          tell current window
+            set currentIdx to 0
+            set tabCount to count of tabs
+            
+            -- Find current tab index
+            repeat with i from 1 to tabCount
+              if item i of tabs is current tab then
+                set currentIdx to i
+                exit repeat
+              end if
+            end repeat
+            
+            -- Find next kiro-cli tab with alert (is processing = true means waiting)
+            repeat with offset from 1 to tabCount
+              set nextIdx to ((currentIdx + offset - 1) mod tabCount) + 1
+              tell current session of tab nextIdx
+                if name contains "kiro-cli" and is processing then
+                  select tab nextIdx
+                  return "found"
+                end if
+              end tell
+            end repeat
+            return "none"
+          end tell
+        end tell
+      '`);
+                if (result.stdout.trim() === "none") {
+                    await ev.action.showAlert();
+                }
+            }
+            catch (err) {
+                streamDeck.logger.error(`Failed to find alert tab: ${err}`);
                 await ev.action.showAlert();
             }
         }
@@ -8147,6 +8356,79 @@ let SwitchAgentAction = (() => {
             const settings = ev.payload.settings;
             const agentName = settings.agentName || "default";
             await ev.action.setTitle(agentName);
+        }
+    });
+    return _classThis;
+})();
+
+const execAsync = promisify(exec);
+let SwitchAgentPersonalityAction = (() => {
+    let _classDecorators = [action({ UUID: "wtf.sauhsoj.streamdecker.switch-agent-personality" })];
+    let _classDescriptor;
+    let _classExtraInitializers = [];
+    let _classThis;
+    let _classSuper = SingletonAction;
+    (class extends _classSuper {
+        static { _classThis = this; }
+        static {
+            const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
+            __esDecorate(null, _classDescriptor = { value: _classThis }, _classDecorators, { kind: "class", name: _classThis.name, metadata: _metadata }, null, _classExtraInitializers);
+            _classThis = _classDescriptor.value;
+            if (_metadata) Object.defineProperty(_classThis, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+            __runInitializers(_classThis, _classExtraInitializers);
+        }
+        async onWillAppear(ev) {
+            const settings = ev.payload.settings;
+            if (settings.agentFile) {
+                const name = this.extractAgentName(settings.agentFile);
+                await ev.action.setTitle(name);
+            }
+        }
+        async onDidReceiveSettings(ev) {
+            const settings = ev.payload.settings;
+            if (settings.agentFile) {
+                const name = this.extractAgentName(settings.agentFile);
+                await ev.action.setTitle(name);
+            }
+        }
+        async onKeyDown(ev) {
+            const settings = ev.payload.settings;
+            const agentFile = settings.agentFile;
+            if (!agentFile) {
+                await ev.action.showAlert();
+                return;
+            }
+            const agentName = this.extractAgentName(agentFile);
+            try {
+                await execAsync(`osascript -e '
+        tell application "iTerm"
+          activate
+          tell current session of current window
+            write text "/agent switch ${agentName}"
+          end tell
+        end tell
+      '`);
+            }
+            catch (err) {
+                streamDeck.logger.error(`Failed to switch agent: ${err}`);
+                await ev.action.showAlert();
+            }
+        }
+        extractAgentName(filename) {
+            // Extract the part after the last hyphen, or use the whole name
+            const base = filename.replace(".json", "");
+            const parts = base.split("-");
+            return parts[parts.length - 1];
+        }
+        static async getAvailableAgents() {
+            const agentsDir = join$1(homedir(), ".kiro", "agents");
+            try {
+                const files = await readdir(agentsDir);
+                return files.filter((f) => f.endsWith(".json") && !f.includes("example") && !f.includes(".bak"));
+            }
+            catch {
+                return [];
+            }
         }
     });
     return _classThis;
@@ -8242,7 +8524,11 @@ let SendThinkingAction = (() => {
 // Register all actions
 streamDeck.actions.registerAction(new FocusKiroAction());
 streamDeck.actions.registerAction(new LaunchKiroCliAction());
+streamDeck.actions.registerAction(new LaunchKiroFolderAction());
+streamDeck.actions.registerAction(new CycleKiroTabsAction());
+streamDeck.actions.registerAction(new NextAlertTabAction());
 streamDeck.actions.registerAction(new SwitchAgentAction());
+streamDeck.actions.registerAction(new SwitchAgentPersonalityAction());
 streamDeck.actions.registerAction(new SendYesAction());
 streamDeck.actions.registerAction(new SendNoAction());
 streamDeck.actions.registerAction(new SendThinkingAction());

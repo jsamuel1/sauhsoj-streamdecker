@@ -2,9 +2,9 @@
   "$schema": "https://schemas.elgato.com/streamdeck/plugins/manifest.json",
   "UUID": "wtf.sauhsoj.streamdecker",
   "Name": "Kiro CLI Tools",
-  "Version": "1.0.0",
+  "Version": "1.1.0",
   "Author": "sauhsoj",
-  "Description": "Stream Deck integration for kiro-cli - focus windows, switch agents, send responses",
+  "Description": "Stream Deck integration for kiro-cli - launch, navigate tabs, switch agents, send responses",
   "Category": "Kiro",
   "CategoryIcon": "imgs/plugin/category",
   "Icon": "imgs/plugin/icon",
@@ -47,6 +47,20 @@
       ]
     },
     {
+      "UUID": "wtf.sauhsoj.streamdecker.launch-kiro-folder",
+      "Name": "Launch in Folder",
+      "Icon": "imgs/actions/focus-kiro/icon",
+      "Tooltip": "Open kiro-cli in a specific folder",
+      "PropertyInspectorPath": "ui/launch-folder.html",
+      "Controllers": ["Keypad"],
+      "States": [
+        {
+          "Image": "imgs/actions/focus-kiro/key",
+          "TitleAlignment": "bottom"
+        }
+      ]
+    },
+    {
       "UUID": "wtf.sauhsoj.streamdecker.focus-kiro",
       "Name": "Focus Kiro",
       "Icon": "imgs/actions/focus-kiro/icon",
@@ -60,11 +74,51 @@
       ]
     },
     {
+      "UUID": "wtf.sauhsoj.streamdecker.cycle-kiro-tabs",
+      "Name": "Cycle Kiro Tabs",
+      "Icon": "imgs/actions/switch-agent/icon",
+      "Tooltip": "Cycle through kiro-cli tabs in iTerm",
+      "Controllers": ["Keypad"],
+      "States": [
+        {
+          "Image": "imgs/actions/switch-agent/key",
+          "TitleAlignment": "bottom"
+        }
+      ]
+    },
+    {
+      "UUID": "wtf.sauhsoj.streamdecker.next-alert-tab",
+      "Name": "Next Alert Tab",
+      "Icon": "imgs/actions/send-thinking/icon",
+      "Tooltip": "Jump to next kiro-cli tab waiting for input",
+      "Controllers": ["Keypad"],
+      "States": [
+        {
+          "Image": "imgs/actions/send-thinking/key",
+          "TitleAlignment": "bottom"
+        }
+      ]
+    },
+    {
       "UUID": "wtf.sauhsoj.streamdecker.switch-agent",
       "Name": "Switch Agent",
       "Icon": "imgs/actions/switch-agent/icon",
       "Tooltip": "Switch kiro-cli to a different agent",
       "PropertyInspectorPath": "ui/switch-agent.html",
+      "Controllers": ["Keypad"],
+      "States": [
+        {
+          "Image": "imgs/actions/switch-agent/key",
+          "TitleAlignment": "bottom"
+        }
+      ]
+    },
+    {
+      "UUID": "wtf.sauhsoj.streamdecker.switch-agent-personality",
+      "Name": "Agent Personality",
+      "Icon": "imgs/actions/switch-agent/icon",
+      "Tooltip": "Switch to a specific agent from ~/.kiro/agents/",
+      "PropertyInspectorPath": "ui/agent-personality.html",
       "Controllers": ["Keypad"],
       "States": [
         {
@@ -111,6 +165,15 @@
           "TitleAlignment": "bottom"
         }
       ]
+    }
+  ],
+  "Profiles": [
+    {
+      "Name": "Koding",
+      "DeviceType": 7,
+      "Readonly": false,
+      "DontAutoSwitchWhenInstalled": true,
+      "AutoInstall": true
     }
   ]
 }
