@@ -1,0 +1,103 @@
+{
+  "$schema": "https://schemas.elgato.com/streamdeck/plugins/manifest.json",
+  "UUID": "wtf.sauhsoj.streamdecker",
+  "Name": "Kiro CLI Tools",
+  "Version": "1.0.0",
+  "Author": "sauhsoj",
+  "Description": "Stream Deck integration for kiro-cli - focus windows, switch agents, send responses",
+  "Category": "Kiro",
+  "CategoryIcon": "imgs/plugin/category",
+  "Icon": "imgs/plugin/icon",
+  "CodePath": "bin/plugin.js",
+  "SDKVersion": 2,
+  "Software": {
+    "MinimumVersion": "6.9"
+  },
+  "OS": [
+    {
+      "Platform": "mac",
+      "MinimumVersion": "10.15"
+    }
+  ],
+  "Nodejs": {
+    "Version": "20",
+    "Debug": "enabled"
+  },
+  "ApplicationsToMonitor": {
+    "mac": [
+      "com.apple.Terminal",
+      "com.googlecode.iterm2",
+      "io.warp.warpd",
+      "dev.warp.Warp-Stable",
+      "com.github.wez.wezterm"
+    ]
+  },
+  "Actions": [
+    {
+      "UUID": "wtf.sauhsoj.streamdecker.focus-kiro",
+      "Name": "Focus Kiro",
+      "Icon": "imgs/actions/focus-kiro/icon",
+      "Tooltip": "Bring kiro-cli terminal window to foreground",
+      "Controllers": ["Keypad"],
+      "States": [
+        {
+          "Image": "imgs/actions/focus-kiro/key",
+          "TitleAlignment": "bottom"
+        }
+      ]
+    },
+    {
+      "UUID": "wtf.sauhsoj.streamdecker.switch-agent",
+      "Name": "Switch Agent",
+      "Icon": "imgs/actions/switch-agent/icon",
+      "Tooltip": "Switch kiro-cli to a different agent",
+      "PropertyInspectorPath": "ui/switch-agent.html",
+      "Controllers": ["Keypad"],
+      "States": [
+        {
+          "Image": "imgs/actions/switch-agent/key",
+          "TitleAlignment": "bottom"
+        }
+      ]
+    },
+    {
+      "UUID": "wtf.sauhsoj.streamdecker.send-yes",
+      "Name": "Send Yes",
+      "Icon": "imgs/actions/send-yes/icon",
+      "Tooltip": "Send 'y' to kiro-cli for confirmation prompts",
+      "Controllers": ["Keypad"],
+      "States": [
+        {
+          "Image": "imgs/actions/send-yes/key",
+          "TitleAlignment": "bottom"
+        }
+      ]
+    },
+    {
+      "UUID": "wtf.sauhsoj.streamdecker.send-no",
+      "Name": "Send No",
+      "Icon": "imgs/actions/send-no/icon",
+      "Tooltip": "Send 'n' to kiro-cli for confirmation prompts",
+      "Controllers": ["Keypad"],
+      "States": [
+        {
+          "Image": "imgs/actions/send-no/key",
+          "TitleAlignment": "bottom"
+        }
+      ]
+    },
+    {
+      "UUID": "wtf.sauhsoj.streamdecker.send-thinking",
+      "Name": "Send Thinking",
+      "Icon": "imgs/actions/send-thinking/icon",
+      "Tooltip": "Send 't' to kiro-cli to request thinking/reasoning",
+      "Controllers": ["Keypad"],
+      "States": [
+        {
+          "Image": "imgs/actions/send-thinking/key",
+          "TitleAlignment": "bottom"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,28 @@
+{
+  "name": "sauhsoj-streamdecker",
+  "version": "1.0.0",
+  "description": "Stream Deck plugin for kiro-cli integration and SA productivity",
+  "main": "src/plugin.ts",
+  "type": "module",
+  "scripts": {
+    "build": "rollup -c",
+    "watch": "rollup -c -w --watch.onEnd=\"streamdeck restart wtf.sauhsoj.streamdecker\""
+  },
+  "keywords": [
+    "streamdeck",
+    "kiro",
+    "productivity"
+  ],
+  "author": "sauhsoj",
+  "license": "MIT",
+  "devDependencies": {
+    "@elgato/streamdeck": "^2.0.0",
+    "@rollup/plugin-commonjs": "^29.0.0",
+    "@rollup/plugin-node-resolve": "^15.2.3",
+    "@rollup/plugin-typescript": "^11.1.6",
+    "@types/node": "^25.0.10",
+    "rollup": "^4.9.6",
+    "tslib": "^2.6.2",
+    "typescript": "^5.3.3"
+  }
+}
