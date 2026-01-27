@@ -8022,7 +8022,7 @@ typeof SuppressedError === "function" ? SuppressedError : function (error, suppr
     return e.name = "SuppressedError", e.error = error, e.suppressed = suppressed, e;
 };
 
-const execAsync$5 = promisify(exec);
+const execAsync$6 = promisify(exec);
 function setActiveTerminal(app) {
 }
 // AppleScript to focus a terminal app
@@ -8035,7 +8035,7 @@ async function focusTerminal() {
     ];
     for (const app of terminals) {
         try {
-            await execAsync$5(`osascript -e 'tell application "${app}" to activate'`);
+            await execAsync$6(`osascript -e 'tell application "${app}" to activate'`);
             return;
         }
         catch {
@@ -8045,11 +8045,11 @@ async function focusTerminal() {
 }
 // Send keystrokes to the frontmost app
 async function sendKeystroke(key) {
-    await execAsync$5(`osascript -e 'tell application "System Events" to keystroke "${key}"'`);
+    await execAsync$6(`osascript -e 'tell application "System Events" to keystroke "${key}"'`);
 }
 // Send a command followed by enter
 async function sendCommand(cmd) {
-    await execAsync$5(`osascript -e 'tell application "System Events" to keystroke "${cmd}"' -e 'tell application "System Events" to keystroke return'`);
+    await execAsync$6(`osascript -e 'tell application "System Events" to keystroke "${cmd}"' -e 'tell application "System Events" to keystroke return'`);
 }
 
 let FocusKiroAction = (() => {
@@ -8080,7 +8080,7 @@ let FocusKiroAction = (() => {
     return _classThis;
 })();
 
-const execAsync$4 = promisify(exec);
+const execAsync$5 = promisify(exec);
 let LaunchKiroCliAction = (() => {
     let _classDecorators = [action({ UUID: "wtf.sauhsoj.streamdecker.launch-kiro-cli" })];
     let _classDescriptor;
@@ -8098,7 +8098,7 @@ let LaunchKiroCliAction = (() => {
         }
         async onKeyDown(ev) {
             try {
-                await execAsync$4(`osascript -e '
+                await execAsync$5(`osascript -e '
         tell application "iTerm"
           activate
           tell current window
@@ -8119,7 +8119,7 @@ let LaunchKiroCliAction = (() => {
     return _classThis;
 })();
 
-const execAsync$3 = promisify(exec);
+const execAsync$4 = promisify(exec);
 const RECENT_FILE = join$1(homedir(), ".kiro", "streamdeck-recent-folders.json");
 let LaunchKiroFolderAction = (() => {
     let _classDecorators = [action({ UUID: "wtf.sauhsoj.streamdecker.launch-kiro-folder" })];
@@ -8158,7 +8158,7 @@ let LaunchKiroFolderAction = (() => {
                 return;
             }
             try {
-                await execAsync$3(`osascript -e '
+                await execAsync$4(`osascript -e '
         tell application "iTerm"
           activate
           tell current window
@@ -8208,7 +8208,7 @@ let LaunchKiroFolderAction = (() => {
     return _classThis;
 })();
 
-const execAsync$2 = promisify(exec);
+const execAsync$3 = promisify(exec);
 let CycleKiroTabsAction = (() => {
     let _classDecorators = [action({ UUID: "wtf.sauhsoj.streamdecker.cycle-kiro-tabs" })];
     let _classDescriptor;
@@ -8226,7 +8226,7 @@ let CycleKiroTabsAction = (() => {
         }
         async onKeyDown(_ev) {
             try {
-                await execAsync$2(`osascript -e '
+                await execAsync$3(`osascript -e '
         tell application "iTerm"
           activate
           tell current window
@@ -8265,7 +8265,7 @@ let CycleKiroTabsAction = (() => {
     return _classThis;
 })();
 
-const execAsync$1 = promisify(exec);
+const execAsync$2 = promisify(exec);
 let NextAlertTabAction = (() => {
     let _classDecorators = [action({ UUID: "wtf.sauhsoj.streamdecker.next-alert-tab" })];
     let _classDescriptor;
@@ -8283,7 +8283,7 @@ let NextAlertTabAction = (() => {
         }
         async onKeyDown(ev) {
             try {
-                const result = await execAsync$1(`osascript -e '
+                const result = await execAsync$2(`osascript -e '
         tell application "iTerm"
           activate
           tell current window
@@ -8361,7 +8361,7 @@ let SwitchAgentAction = (() => {
     return _classThis;
 })();
 
-const execAsync = promisify(exec);
+const execAsync$1 = promisify(exec);
 let SwitchAgentPersonalityAction = (() => {
     let _classDecorators = [action({ UUID: "wtf.sauhsoj.streamdecker.switch-agent-personality" })];
     let _classDescriptor;
@@ -8400,7 +8400,7 @@ let SwitchAgentPersonalityAction = (() => {
             }
             const agentName = this.extractAgentName(agentFile);
             try {
-                await execAsync(`osascript -e '
+                await execAsync$1(`osascript -e '
         tell application "iTerm"
           activate
           tell current session of current window
@@ -8429,6 +8429,100 @@ let SwitchAgentPersonalityAction = (() => {
             catch {
                 return [];
             }
+        }
+    });
+    return _classThis;
+})();
+
+const execAsync = promisify(exec);
+let KiroStatusAction = (() => {
+    let _classDecorators = [action({ UUID: "wtf.sauhsoj.streamdecker.kiro-status" })];
+    let _classDescriptor;
+    let _classExtraInitializers = [];
+    let _classThis;
+    let _classSuper = SingletonAction;
+    (class extends _classSuper {
+        static { _classThis = this; }
+        static {
+            const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
+            __esDecorate(null, _classDescriptor = { value: _classThis }, _classDecorators, { kind: "class", name: _classThis.name, metadata: _metadata }, null, _classExtraInitializers);
+            _classThis = _classDescriptor.value;
+            if (_metadata) Object.defineProperty(_classThis, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+            __runInitializers(_classThis, _classExtraInitializers);
+        }
+        intervalId = null;
+        async onWillAppear(ev) {
+            // Update immediately and then every 2 seconds
+            await this.updateStatus(ev);
+            this.intervalId = setInterval(() => this.updateStatus(ev), 2000);
+        }
+        async onWillDisappear(_ev) {
+            if (this.intervalId) {
+                clearInterval(this.intervalId);
+                this.intervalId = null;
+            }
+        }
+        async updateStatus(ev) {
+            try {
+                const status = await this.getCurrentKiroStatus();
+                if (status) {
+                    const title = status.contextPercent !== null
+                        ? `${status.contextPercent}%\n${status.agent || "?"}`
+                        : status.agent || "kiro";
+                    await ev.action.setTitle(title);
+                }
+                else {
+                    await ev.action.setTitle("—");
+                }
+            }
+            catch {
+                await ev.action.setTitle("—");
+            }
+        }
+        async getCurrentKiroStatus() {
+            try {
+                const result = await execAsync(`osascript -e '
+        tell application "iTerm"
+          if (count of windows) = 0 then return ""
+          tell current session of current window
+            return name
+          end tell
+        end tell
+      '`);
+                const name = result.stdout.trim();
+                if (!name || !name.includes("kiro-cli"))
+                    return null;
+                return this.parseTitle(name);
+            }
+            catch {
+                return null;
+            }
+        }
+        parseTitle(title) {
+            // Format: "kiro-cli [42%] default — ~/src/personal"
+            // Or old format: "kiro-cli — ~/src/personal"
+            const status = {
+                contextPercent: null,
+                agent: null,
+                path: "",
+                waiting: false,
+            };
+            // Extract context %
+            const pctMatch = title.match(/\[(\d+)%\]/);
+            if (pctMatch) {
+                status.contextPercent = parseInt(pctMatch[1], 10);
+            }
+            // Extract agent name (between ] and —)
+            const agentMatch = title.match(/\]\s*(\w+)\s*—/);
+            if (agentMatch) {
+                status.agent = agentMatch[1];
+            }
+            // Extract path (after —)
+            const pathMatch = title.match(/—\s*(.+)$/);
+            if (pathMatch) {
+                status.path = pathMatch[1].trim();
+            }
+            return status;
         }
     });
     return _classThis;
@@ -8529,6 +8623,7 @@ streamDeck.actions.registerAction(new CycleKiroTabsAction());
 streamDeck.actions.registerAction(new NextAlertTabAction());
 streamDeck.actions.registerAction(new SwitchAgentAction());
 streamDeck.actions.registerAction(new SwitchAgentPersonalityAction());
+streamDeck.actions.registerAction(new KiroStatusAction());
 streamDeck.actions.registerAction(new SendYesAction());
 streamDeck.actions.registerAction(new SendNoAction());
 streamDeck.actions.registerAction(new SendThinkingAction());

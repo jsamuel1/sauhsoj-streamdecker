@@ -165,6 +165,19 @@
           "TitleAlignment": "bottom"
         }
       ]
+    },
+    {
+      "UUID": "wtf.sauhsoj.streamdecker.kiro-status",
+      "Name": "Kiro Status",
+      "Icon": "imgs/actions/focus-kiro/icon",
+      "Tooltip": "Shows context % and agent of current kiro-cli session",
+      "Controllers": ["Keypad"],
+      "States": [
+        {
+          "Image": "imgs/actions/focus-kiro/key",
+          "TitleAlignment": "middle"
+        }
+      ]
     }
   ],
   "Profiles": [
