@@ -1,0 +1,8 @@
+[
+    { "path": "kiro-logo.png", "name": "Kiro Logo", "tags": ["kiro", "ai", "coding", "logo"] },
+    { "path": "kiro-focus.png", "name": "Kiro Focus", "tags": ["kiro", "ai", "focus", "terminal"] },
+    { "path": "kiro-switch.png", "name": "Kiro Switch", "tags": ["kiro", "ai", "switch", "agent"] },
+    { "path": "kiro-yes.png", "name": "Kiro Yes", "tags": ["kiro", "ai", "yes", "confirm", "approve"] },
+    { "path": "kiro-no.png", "name": "Kiro No", "tags": ["kiro", "ai", "no", "reject", "cancel"] },
+    { "path": "kiro-thinking.png", "name": "Kiro Thinking", "tags": ["kiro", "ai", "thinking", "reason"] }
+]
