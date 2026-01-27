@@ -8019,7 +8019,7 @@ typeof SuppressedError === "function" ? SuppressedError : function (error, suppr
     return e.name = "SuppressedError", e.error = error, e.suppressed = suppressed, e;
 };
 
-const execAsync = promisify(exec);
+const execAsync$1 = promisify(exec);
 function setActiveTerminal(app) {
 }
 // AppleScript to focus a terminal app
@@ -8032,7 +8032,7 @@ async function focusTerminal() {
     ];
     for (const app of terminals) {
         try {
-            await execAsync(`osascript -e 'tell application "${app}" to activate'`);
+            await execAsync$1(`osascript -e 'tell application "${app}" to activate'`);
             return;
         }
         catch {
@@ -8042,11 +8042,11 @@ async function focusTerminal() {
 }
 // Send keystrokes to the frontmost app
 async function sendKeystroke(key) {
-    await execAsync(`osascript -e 'tell application "System Events" to keystroke "${key}"'`);
+    await execAsync$1(`osascript -e 'tell application "System Events" to keystroke "${key}"'`);
 }
 // Send a command followed by enter
 async function sendCommand(cmd) {
-    await execAsync(`osascript -e 'tell application "System Events" to keystroke "${cmd}"' -e 'tell application "System Events" to keystroke return'`);
+    await execAsync$1(`osascript -e 'tell application "System Events" to keystroke "${cmd}"' -e 'tell application "System Events" to keystroke return'`);
 }
 
 let FocusKiroAction = (() => {
@@ -8070,6 +8070,45 @@ let FocusKiroAction = (() => {
             }
             catch (err) {
                 streamDeck.logger.error(`Failed to focus terminal: ${err}`);
+                await ev.action.showAlert();
+            }
+        }
+    });
+    return _classThis;
+})();
+
+const execAsync = promisify(exec);
+let LaunchKiroCliAction = (() => {
+    let _classDecorators = [action({ UUID: "wtf.sauhsoj.streamdecker.launch-kiro-cli" })];
+    let _classDescriptor;
+    let _classExtraInitializers = [];
+    let _classThis;
+    let _classSuper = SingletonAction;
+    (class extends _classSuper {
+        static { _classThis = this; }
+        static {
+            const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
+            __esDecorate(null, _classDescriptor = { value: _classThis }, _classDecorators, { kind: "class", name: _classThis.name, metadata: _metadata }, null, _classExtraInitializers);
+            _classThis = _classDescriptor.value;
+            if (_metadata) Object.defineProperty(_classThis, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+            __runInitializers(_classThis, _classExtraInitializers);
+        }
+        async onKeyDown(ev) {
+            try {
+                await execAsync(`osascript -e '
+        tell application "iTerm"
+          activate
+          tell current window
+            create tab with default profile
+            tell current session
+              write text "kiro-cli chat"
+            end tell
+          end tell
+        end tell
+      '`);
+            }
+            catch (err) {
+                streamDeck.logger.error(`Failed to launch kiro-cli: ${err}`);
                 await ev.action.showAlert();
             }
         }
@@ -8202,6 +8241,7 @@ let SendThinkingAction = (() => {
 
 // Register all actions
 streamDeck.actions.registerAction(new FocusKiroAction());
+streamDeck.actions.registerAction(new LaunchKiroCliAction());
 streamDeck.actions.registerAction(new SwitchAgentAction());
 streamDeck.actions.registerAction(new SendYesAction());
 streamDeck.actions.registerAction(new SendNoAction());

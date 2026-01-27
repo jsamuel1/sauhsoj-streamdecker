@@ -1,6 +1,7 @@
 import streamDeck from "@elgato/streamdeck";
 
 import { FocusKiroAction } from "./actions/focus-kiro.js";
+import { LaunchKiroCliAction } from "./actions/launch-kiro.js";
 import { SwitchAgentAction } from "./actions/switch-agent.js";
 import { SendYesAction } from "./actions/send-yes.js";
 import { SendNoAction } from "./actions/send-no.js";
@@ -9,6 +10,7 @@ import { setActiveTerminal } from "./kiro-utils.js";
 
 // Register all actions
 streamDeck.actions.registerAction(new FocusKiroAction());
+streamDeck.actions.registerAction(new LaunchKiroCliAction());
 streamDeck.actions.registerAction(new SwitchAgentAction());
 streamDeck.actions.registerAction(new SendYesAction());
 streamDeck.actions.registerAction(new SendNoAction());

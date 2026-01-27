@@ -34,6 +34,19 @@
   },
   "Actions": [
     {
+      "UUID": "wtf.sauhsoj.streamdecker.launch-kiro-cli",
+      "Name": "Launch kiro-cli",
+      "Icon": "imgs/actions/focus-kiro/icon",
+      "Tooltip": "Open new iTerm tab with kiro-cli chat",
+      "Controllers": ["Keypad"],
+      "States": [
+        {
+          "Image": "imgs/actions/focus-kiro/key",
+          "TitleAlignment": "bottom"
+        }
+      ]
+    },
+    {
       "UUID": "wtf.sauhsoj.streamdecker.focus-kiro",
       "Name": "Focus Kiro",
       "Icon": "imgs/actions/focus-kiro/icon",
