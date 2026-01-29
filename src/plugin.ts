@@ -11,6 +11,7 @@ import { KiroStatusAction } from "./actions/kiro-status.js";
 import { SendYesAction } from "./actions/send-yes.js";
 import { SendNoAction } from "./actions/send-no.js";
 import { SendThinkingAction } from "./actions/send-thinking.js";
+import { registerNeoHandlers } from "./actions/infobar-calendar.js";
 import { setActiveTerminal } from "./kiro-utils.js";
 
 // Register all actions
@@ -36,6 +37,9 @@ streamDeck.system.onApplicationDidTerminate((ev) => {
   streamDeck.logger.info(`Terminal terminated: ${ev.application}`);
   setActiveTerminal(null);
 });
+
+// Register Neo info bar handlers (uses patched SDK)
+registerNeoHandlers();
 
 // Connect to Stream Deck
 streamDeck.connect();

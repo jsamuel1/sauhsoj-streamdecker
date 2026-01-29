@@ -10,7 +10,19 @@
     "lint": "eslint src --ext .ts",
     "lint:fix": "eslint src --ext .ts --fix",
     "format": "prettier --write src/**/*.ts",
-    "check": "npm run lint && npm run build"
+    "check": "npm run lint && npm run build",
+    "test": "npm run test:scripts",
+    "test:scripts": "for f in wtf.sauhsoj.streamdecker.sdPlugin/scripts/*.applescript; do echo \"Testing $f\"; osacompile -o /dev/null \"$f\" || exit 1; done && echo 'All scripts OK'",
+    "prepare": "husky"
+  },
+  "lint-staged": {
+    "src/**/*.ts": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "wtf.sauhsoj.streamdecker.sdPlugin/scripts/*.applescript": [
+      "bash -c 'for f in \"$@\"; do osacompile -o /dev/null \"$f\" || exit 1; done' _"
+    ]
   },
   "keywords": [
     "streamdeck",
@@ -30,6 +42,8 @@
     "@typescript-eslint/parser": "^8.54.0",
     "eslint": "^9.39.2",
     "eslint-config-prettier": "^10.1.8",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.2.7",
     "prettier": "^3.8.1",
     "rollup": "^4.9.6",
     "tslib": "^2.6.2",

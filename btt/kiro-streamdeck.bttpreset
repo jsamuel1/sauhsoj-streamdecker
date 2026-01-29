@@ -1,0 +1,187 @@
+{
+  "BTTPresetName": "Kiro Stream Deck",
+  "BTTPresetUUID": "A1B2C3D4-E5F6-7890-ABCD-EF1234567890",
+  "BTTPresetCreatorNotes": "Kiro CLI controls for Stream Deck Neo with calendar info bar",
+  "BTTPresetContent": [
+    {
+      "BTTAppBundleIdentifier": "BT.G",
+      "BTTAppName": "Global",
+      "BTTAppAutoInvertIcon": 1,
+      "BTTTriggers": [
+        {
+          "BTTStreamDeckButtonName": "Launch Kiro",
+          "BTTTriggerType": 719,
+          "BTTTriggerTypeDescription": "Stream Deck Button",
+          "BTTTriggerClass": "BTTTriggerTypeStreamDeck",
+          "BTTPredefinedActionType": 195,
+          "BTTPredefinedActionName": "Run Apple Script (async in background)",
+          "BTTInlineAppleScript": "tell application \"iTerm\"\n  activate\n  if (count of windows) = 0 then\n    create window with default profile\n  end if\n  tell current window\n    create tab with default profile\n    tell current session\n      write text \"kiro-cli chat\"\n    end tell\n  end tell\nend tell",
+          "BTTEnabled2": 1,
+          "BTTEnabled": 1,
+          "BTTUUID": "KIRO-0001-LAUNCH-BTN",
+          "BTTOrder": 0,
+          "BTTDisplayOrder": 0,
+          "BTTTriggerConfig": {
+            "BTTStreamDeckBackgroundColor": "40.000000, 80.000000, 160.000000, 255.000000",
+            "BTTStreamDeckCornerRadius": 12,
+            "BTTStreamDeckImageHeight": 30,
+            "BTTStreamDeckIconType": 2,
+            "BTTStreamDeckSFSymbolName": "terminal",
+            "BTTStreamDeckIconColor1": "255.000000, 255.000000, 255.000000, 255.000000",
+            "BTTStreamDeckTextOffsetY": 15,
+            "BTTStreamDeckButtonTitle": "Launch"
+          }
+        },
+        {
+          "BTTStreamDeckButtonName": "Focus Kiro",
+          "BTTTriggerType": 719,
+          "BTTTriggerTypeDescription": "Stream Deck Button",
+          "BTTTriggerClass": "BTTTriggerTypeStreamDeck",
+          "BTTPredefinedActionType": 195,
+          "BTTPredefinedActionName": "Run Apple Script (async in background)",
+          "BTTInlineAppleScript": "tell application \"iTerm\"\n  activate\n  tell current window\n    set tabCount to count of tabs\n    repeat with i from 1 to tabCount\n      set theSession to current session of tab i\n      set tabName to name of theSession\n      if tabName contains \"kiro-cli\" then\n        select tab i\n        return \"found\"\n      end if\n    end repeat\n  end tell\n  return \"none\"\nend tell",
+          "BTTEnabled2": 1,
+          "BTTEnabled": 1,
+          "BTTUUID": "KIRO-0002-FOCUS-BTN",
+          "BTTOrder": 1,
+          "BTTDisplayOrder": 1,
+          "BTTTriggerConfig": {
+            "BTTStreamDeckBackgroundColor": "60.000000, 120.000000, 180.000000, 255.000000",
+            "BTTStreamDeckCornerRadius": 12,
+            "BTTStreamDeckImageHeight": 30,
+            "BTTStreamDeckIconType": 2,
+            "BTTStreamDeckSFSymbolName": "eye",
+            "BTTStreamDeckIconColor1": "255.000000, 255.000000, 255.000000, 255.000000",
+            "BTTStreamDeckTextOffsetY": 15,
+            "BTTStreamDeckButtonTitle": "Focus"
+          }
+        },
+        {
+          "BTTStreamDeckButtonName": "Send Yes",
+          "BTTTriggerType": 719,
+          "BTTTriggerTypeDescription": "Stream Deck Button",
+          "BTTTriggerClass": "BTTTriggerTypeStreamDeck",
+          "BTTPredefinedActionType": 195,
+          "BTTPredefinedActionName": "Run Apple Script (async in background)",
+          "BTTInlineAppleScript": "tell application \"iTerm\" to activate\ndelay 0.1\ntell application \"System Events\" to keystroke \"y\"",
+          "BTTEnabled2": 1,
+          "BTTEnabled": 1,
+          "BTTUUID": "KIRO-0003-YES-BTN",
+          "BTTOrder": 2,
+          "BTTDisplayOrder": 2,
+          "BTTTriggerConfig": {
+            "BTTStreamDeckBackgroundColor": "34.000000, 139.000000, 34.000000, 255.000000",
+            "BTTStreamDeckCornerRadius": 12,
+            "BTTStreamDeckImageHeight": 30,
+            "BTTStreamDeckIconType": 2,
+            "BTTStreamDeckSFSymbolName": "checkmark.circle",
+            "BTTStreamDeckIconColor1": "255.000000, 255.000000, 255.000000, 255.000000",
+            "BTTStreamDeckTextOffsetY": 15,
+            "BTTStreamDeckButtonTitle": "Yes"
+          }
+        },
+        {
+          "BTTStreamDeckButtonName": "Send No",
+          "BTTTriggerType": 719,
+          "BTTTriggerTypeDescription": "Stream Deck Button",
+          "BTTTriggerClass": "BTTTriggerTypeStreamDeck",
+          "BTTPredefinedActionType": 195,
+          "BTTPredefinedActionName": "Run Apple Script (async in background)",
+          "BTTInlineAppleScript": "tell application \"iTerm\" to activate\ndelay 0.1\ntell application \"System Events\" to keystroke \"n\"",
+          "BTTEnabled2": 1,
+          "BTTEnabled": 1,
+          "BTTUUID": "KIRO-0004-NO-BTN",
+          "BTTOrder": 3,
+          "BTTDisplayOrder": 3,
+          "BTTTriggerConfig": {
+            "BTTStreamDeckBackgroundColor": "178.000000, 34.000000, 34.000000, 255.000000",
+            "BTTStreamDeckCornerRadius": 12,
+            "BTTStreamDeckImageHeight": 30,
+            "BTTStreamDeckIconType": 2,
+            "BTTStreamDeckSFSymbolName": "xmark.circle",
+            "BTTStreamDeckIconColor1": "255.000000, 255.000000, 255.000000, 255.000000",
+            "BTTStreamDeckTextOffsetY": 15,
+            "BTTStreamDeckButtonTitle": "No"
+          }
+        },
+        {
+          "BTTStreamDeckButtonName": "Cycle Tabs",
+          "BTTTriggerType": 719,
+          "BTTTriggerTypeDescription": "Stream Deck Button",
+          "BTTTriggerClass": "BTTTriggerTypeStreamDeck",
+          "BTTPredefinedActionType": 195,
+          "BTTPredefinedActionName": "Run Apple Script (async in background)",
+          "BTTInlineAppleScript": "tell application \"iTerm\"\n  activate\n  tell current window\n    set tabCount to count of tabs\n    set currentIdx to 0\n    repeat with i from 1 to tabCount\n      if tab i is selected then\n        set currentIdx to i\n        exit repeat\n      end if\n    end repeat\n    set foundNext to false\n    repeat with i from (currentIdx + 1) to tabCount\n      set theSession to current session of tab i\n      if name of theSession contains \"kiro-cli\" then\n        select tab i\n        set foundNext to true\n        exit repeat\n      end if\n    end repeat\n    if not foundNext then\n      repeat with i from 1 to (currentIdx - 1)\n        set theSession to current session of tab i\n        if name of theSession contains \"kiro-cli\" then\n          select tab i\n          exit repeat\n        end if\n      end repeat\n    end if\n  end tell\nend tell",
+          "BTTEnabled2": 1,
+          "BTTEnabled": 1,
+          "BTTUUID": "KIRO-0005-CYCLE-BTN",
+          "BTTOrder": 4,
+          "BTTDisplayOrder": 4,
+          "BTTTriggerConfig": {
+            "BTTStreamDeckBackgroundColor": "128.000000, 0.000000, 128.000000, 255.000000",
+            "BTTStreamDeckCornerRadius": 12,
+            "BTTStreamDeckImageHeight": 30,
+            "BTTStreamDeckIconType": 2,
+            "BTTStreamDeckSFSymbolName": "arrow.triangle.2.circlepath",
+            "BTTStreamDeckIconColor1": "255.000000, 255.000000, 255.000000, 255.000000",
+            "BTTStreamDeckTextOffsetY": 15,
+            "BTTStreamDeckButtonTitle": "Cycle"
+          }
+        },
+        {
+          "BTTStreamDeckButtonName": "Send Thinking",
+          "BTTTriggerType": 719,
+          "BTTTriggerTypeDescription": "Stream Deck Button",
+          "BTTTriggerClass": "BTTTriggerTypeStreamDeck",
+          "BTTPredefinedActionType": 195,
+          "BTTPredefinedActionName": "Run Apple Script (async in background)",
+          "BTTInlineAppleScript": "tell application \"iTerm\" to activate\ndelay 0.1\ntell application \"System Events\" to keystroke \"think about this\"\ndelay 0.05\ntell application \"System Events\" to key code 36",
+          "BTTEnabled2": 1,
+          "BTTEnabled": 1,
+          "BTTUUID": "KIRO-0006-THINK-BTN",
+          "BTTOrder": 5,
+          "BTTDisplayOrder": 5,
+          "BTTTriggerConfig": {
+            "BTTStreamDeckBackgroundColor": "255.000000, 165.000000, 0.000000, 255.000000",
+            "BTTStreamDeckCornerRadius": 12,
+            "BTTStreamDeckImageHeight": 30,
+            "BTTStreamDeckIconType": 2,
+            "BTTStreamDeckSFSymbolName": "brain",
+            "BTTStreamDeckIconColor1": "255.000000, 255.000000, 255.000000, 255.000000",
+            "BTTStreamDeckTextOffsetY": 15,
+            "BTTStreamDeckButtonTitle": "Think"
+          }
+        },
+        {
+          "BTTStreamDeckButtonName": "Calendar Info Bar",
+          "BTTTriggerType": 725,
+          "BTTTriggerTypeDescription": "Apple Script Widget",
+          "BTTTriggerClass": "BTTTriggerTypeStreamDeck",
+          "BTTPredefinedActionType": -1,
+          "BTTPredefinedActionName": "No Action",
+          "BTTEnabled2": 1,
+          "BTTEnabled": 1,
+          "BTTUUID": "KIRO-0007-CALENDAR-LCD",
+          "BTTOrder": 6,
+          "BTTDisplayOrder": 6,
+          "BTTNotesInsteadOfDescription": 1,
+          "BTTNotes": "Shows next calendar event on Neo LCD info bar",
+          "BTTTriggerConfig": {
+            "BTTStreamDeckBackgroundColor": "30.000000, 30.000000, 30.000000, 255.000000",
+            "BTTStreamDeckCornerRadius": 0,
+            "BTTStreamDeckImageHeight": 20,
+            "BTTScriptUpdateInterval": 30,
+            "BTTScriptAlwaysRunOnInit": 1,
+            "BTTStreamDeckMainTab": 3,
+            "BTTStreamDeckIconColor1": "255.000000, 255.000000, 255.000000, 255.000000",
+            "BTTScriptSettings": {
+              "BTTScriptType": 0,
+              "BTTAppleScriptString": "set now to current date\nset twoHoursLater to now + (2 * 60 * 60)\n\ntell application \"Calendar\"\n  set allCals to calendars\n  set nextEvent to missing value\n  set nextStart to twoHoursLater\n  \n  repeat with cal in allCals\n    set upcomingEvents to (events of cal whose start date ≥ now and start date < twoHoursLater)\n    repeat with evt in upcomingEvents\n      set evtStart to start date of evt\n      if evtStart < nextStart then\n        set nextStart to evtStart\n        set nextEvent to evt\n      end if\n    end repeat\n  end repeat\n  \n  if nextEvent is not missing value then\n    set evtTitle to summary of nextEvent\n    set minsUntil to round ((nextStart - now) / 60)\n    \n    -- Color based on urgency\n    if minsUntil < 5 then\n      set bgColor to \"200,50,50,255\"\n    else if minsUntil < 15 then\n      set bgColor to \"200,150,50,255\"\n    else\n      set bgColor to \"50,150,50,255\"\n    end if\n    \n    -- Truncate title if too long\n    if length of evtTitle > 25 then\n      set evtTitle to text 1 thru 22 of evtTitle & \"...\"\n    end if\n    \n    return \"{\\\"text\\\": \\\"\" & evtTitle & \" (\" & minsUntil & \"m)\\\", \\\"BTTStreamDeckBackgroundColor\\\": \\\"\" & bgColor & \"\\\"}\"\n  end if\nend tell\n\nreturn \"{\\\"text\\\": \\\"No upcoming events\\\", \\\"BTTStreamDeckBackgroundColor\\\": \\\"50,50,50,255\\\"}\"",
+              "BTTAppleScriptUsePath": false
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -10,6 +10,7 @@
   "Icon": "imgs/plugin/icon",
   "CodePath": "bin/plugin.js",
   "SDKVersion": 2,
+  "PrivateAPI": true,
   "Software": {
     "MinimumVersion": "6.9"
   },
@@ -178,12 +179,24 @@
           "TitleAlignment": "middle"
         }
       ]
+    },
+    {
+      "UUID": "wtf.sauhsoj.streamdecker.infobar-calendar",
+      "Name": "Calendar / Time",
+      "Icon": "imgs/actions/focus-kiro/icon",
+      "Tooltip": "Shows next calendar event (within 2h) or current time",
+      "Controllers": ["Neo"],
+      "States": [
+        {
+          "TitleAlignment": "middle"
+        }
+      ]
     }
   ],
   "Profiles": [
     {
       "Name": "Koding",
-      "DeviceType": 7,
+      "DeviceType": 9,
       "Readonly": false,
       "DontAutoSwitchWhenInstalled": true,
       "AutoInstall": true

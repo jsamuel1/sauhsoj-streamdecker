@@ -1,3 +1,5 @@
+let __neo_connection = null;
+
 import require$$0$3 from 'events';
 import require$$1$1 from 'https';
 import require$$2 from 'http';
@@ -6290,7 +6292,18 @@ class Connection extends EventEmitter {
         if (this.canConnect) {
             this.canConnect = false;
             const webSocket = new WebSocket(`ws://127.0.0.1:${this.registrationParameters.port}`);
-            webSocket.onmessage = (ev) => this.tryEmit(ev);
+            // NEO_PATCH_APPLIED
+            webSocket.onmessage = (ev) => {
+                try {
+                    const data = JSON.parse(ev.data);
+                    if (data.payload?.controller === "Neo") {
+                        // Emit as a custom event that won't trigger KeyAction creation
+                        this.emit("neoEvent", data);
+                        return;
+                    }
+                } catch {}
+                this.tryEmit(ev);
+            };
             webSocket.onopen = () => {
                 webSocket.send(JSON.stringify({
                     event: this.registrationParameters.registerEvent,
@@ -6387,6 +6400,7 @@ class Connection extends EventEmitter {
     }
 }
 const connection = new Connection();
+__neo_connection = connection;
 
 /**
  * Provides information for events received from Stream Deck.
@@ -8022,20 +8036,36 @@ typeof SuppressedError === "function" ? SuppressedError : function (error, suppr
     return e.name = "SuppressedError", e.error = error, e.suppressed = suppressed, e;
 };
 
-const execAsync$6 = promisify(exec);
+const execAsync$a = promisify(exec);
+// Scripts directory
+const SCRIPTS_DIR = "/Users/sauhsoj/src/personal/sauhsoj-streamdecker/wtf.sauhsoj.streamdecker.sdPlugin/scripts";
 function setActiveTerminal(app) {
+}
+// Permission check cache
+let iTermPermissionChecked = false;
+async function checkiTermPermission() {
+    if (iTermPermissionChecked)
+        return true;
+    try {
+        const result = await execAsync$a(`osascript "${SCRIPTS_DIR}/check-iterm-permission.applescript"`);
+        if (result.stdout.trim() === "ok") {
+            iTermPermissionChecked = true;
+            return true;
+        }
+        streamDeck.logger.warn(`iTerm permission issue: ${result.stdout.trim()}`);
+        return false;
+    }
+    catch (err) {
+        streamDeck.logger.error(`iTerm permission check failed: ${err}`);
+        return false;
+    }
 }
 // AppleScript to focus a terminal app
 async function focusTerminal() {
-    const terminals = [
-        "iTerm",
-        "Terminal",
-        "Warp",
-        "WezTerm",
-    ];
+    const terminals = ["iTerm", "Terminal", "Warp", "WezTerm"];
     for (const app of terminals) {
         try {
-            await execAsync$6(`osascript -e 'tell application "${app}" to activate'`);
+            await execAsync$a(`osascript -e 'tell application "${app}" to activate'`);
             return;
         }
         catch {
@@ -8043,15 +8073,12 @@ async function focusTerminal() {
         }
     }
 }
-// Send keystrokes to the frontmost app
-async function sendKeystroke(key) {
-    await execAsync$6(`osascript -e 'tell application "System Events" to keystroke "${key}"'`);
-}
 // Send a command followed by enter
-async function sendCommand(cmd) {
-    await execAsync$6(`osascript -e 'tell application "System Events" to keystroke "${cmd}"' -e 'tell application "System Events" to keystroke return'`);
+async function sendCommand$1(cmd) {
+    await execAsync$a(`osascript -e 'tell application "System Events" to keystroke "${cmd}"' -e 'tell application "System Events" to keystroke return'`);
 }
 
+const execAsync$9 = promisify(exec);
 let FocusKiroAction = (() => {
     let _classDecorators = [action({ UUID: "wtf.sauhsoj.streamdecker.focus-kiro" })];
     let _classDescriptor;
@@ -8068,11 +8095,18 @@ let FocusKiroAction = (() => {
             __runInitializers(_classThis, _classExtraInitializers);
         }
         async onKeyDown(ev) {
+            if (!(await checkiTermPermission())) {
+                await ev.action.showAlert();
+                return;
+            }
             try {
-                await focusTerminal();
+                const result = await execAsync$9(`osascript "${SCRIPTS_DIR}/focus-kiro.applescript"`);
+                if (result.stdout.trim() === "none") {
+                    await ev.action.showAlert();
+                }
             }
             catch (err) {
-                streamDeck.logger.error(`Failed to focus terminal: ${err}`);
+                streamDeck.logger.error(`FocusKiro failed: ${err}`);
                 await ev.action.showAlert();
             }
         }
@@ -8080,7 +8114,7 @@ let FocusKiroAction = (() => {
     return _classThis;
 })();
 
-const execAsync$5 = promisify(exec);
+const execAsync$8 = promisify(exec);
 let LaunchKiroCliAction = (() => {
     let _classDecorators = [action({ UUID: "wtf.sauhsoj.streamdecker.launch-kiro-cli" })];
     let _classDescriptor;
@@ -8098,20 +8132,10 @@ let LaunchKiroCliAction = (() => {
         }
         async onKeyDown(ev) {
             try {
-                await execAsync$5(`osascript -e '
-        tell application "iTerm"
-          activate
-          tell current window
-            create tab with default profile
-            tell current session
-              write text "kiro-cli chat"
-            end tell
-          end tell
-        end tell
-      '`);
+                await execAsync$8(`osascript "${SCRIPTS_DIR}/launch-kiro.applescript"`);
             }
             catch (err) {
-                streamDeck.logger.error(`Failed to launch kiro-cli: ${err}`);
+                streamDeck.logger.error(`LaunchKiroCli failed: ${err}`);
                 await ev.action.showAlert();
             }
         }
@@ -8119,7 +8143,7 @@ let LaunchKiroCliAction = (() => {
     return _classThis;
 })();
 
-const execAsync$4 = promisify(exec);
+const execAsync$7 = promisify(exec);
 const RECENT_FILE = join$1(homedir(), ".kiro", "streamdeck-recent-folders.json");
 let LaunchKiroFolderAction = (() => {
     let _classDecorators = [action({ UUID: "wtf.sauhsoj.streamdecker.launch-kiro-folder" })];
@@ -8158,7 +8182,7 @@ let LaunchKiroFolderAction = (() => {
                 return;
             }
             try {
-                await execAsync$4(`osascript -e '
+                await execAsync$7(`osascript -e '
         tell application "iTerm"
           activate
           tell current window
@@ -8208,7 +8232,7 @@ let LaunchKiroFolderAction = (() => {
     return _classThis;
 })();
 
-const execAsync$3 = promisify(exec);
+const execAsync$6 = promisify(exec);
 let CycleKiroTabsAction = (() => {
     let _classDecorators = [action({ UUID: "wtf.sauhsoj.streamdecker.cycle-kiro-tabs" })];
     let _classDescriptor;
@@ -8224,48 +8248,27 @@ let CycleKiroTabsAction = (() => {
             if (_metadata) Object.defineProperty(_classThis, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
             __runInitializers(_classThis, _classExtraInitializers);
         }
-        async onKeyDown(_ev) {
+        async onKeyDown(ev) {
+            if (!(await checkiTermPermission())) {
+                await ev.action.showAlert();
+                return;
+            }
             try {
-                await execAsync$3(`osascript -e '
-        tell application "iTerm"
-          activate
-          tell current window
-            set currentIdx to 0
-            set tabCount to count of tabs
-            set foundKiro to false
-            
-            -- Find current tab index
-            repeat with i from 1 to tabCount
-              if item i of tabs is current tab then
-                set currentIdx to i
-                exit repeat
-              end if
-            end repeat
-            
-            -- Find next kiro-cli tab
-            repeat with offset from 1 to tabCount
-              set nextIdx to ((currentIdx + offset - 1) mod tabCount) + 1
-              tell current session of tab nextIdx
-                if name contains "kiro-cli" then
-                  select tab nextIdx
-                  set foundKiro to true
-                  exit repeat
-                end if
-              end tell
-            end repeat
-          end tell
-        end tell
-      '`);
+                const result = await execAsync$6(`osascript "${SCRIPTS_DIR}/cycle-kiro-tabs.applescript"`);
+                if (result.stdout.trim() === "none") {
+                    await ev.action.showAlert();
+                }
             }
             catch (err) {
-                streamDeck.logger.error(`Failed to cycle tabs: ${err}`);
+                streamDeck.logger.error(`CycleKiroTabs failed: ${err}`);
+                await ev.action.showAlert();
             }
         }
     });
     return _classThis;
 })();
 
-const execAsync$2 = promisify(exec);
+const execAsync$5 = promisify(exec);
 let NextAlertTabAction = (() => {
     let _classDecorators = [action({ UUID: "wtf.sauhsoj.streamdecker.next-alert-tab" })];
     let _classDescriptor;
@@ -8282,42 +8285,20 @@ let NextAlertTabAction = (() => {
             __runInitializers(_classThis, _classExtraInitializers);
         }
         async onKeyDown(ev) {
+            if (!(await checkiTermPermission())) {
+                streamDeck.logger.error("No iTerm automation permission - check System Settings > Privacy > Automation");
+                await ev.action.showAlert();
+                return;
+            }
             try {
-                const result = await execAsync$2(`osascript -e '
-        tell application "iTerm"
-          activate
-          tell current window
-            set currentIdx to 0
-            set tabCount to count of tabs
-            
-            -- Find current tab index
-            repeat with i from 1 to tabCount
-              if item i of tabs is current tab then
-                set currentIdx to i
-                exit repeat
-              end if
-            end repeat
-            
-            -- Find next kiro-cli tab with alert (is processing = true means waiting)
-            repeat with offset from 1 to tabCount
-              set nextIdx to ((currentIdx + offset - 1) mod tabCount) + 1
-              tell current session of tab nextIdx
-                if name contains "kiro-cli" and is processing then
-                  select tab nextIdx
-                  return "found"
-                end if
-              end tell
-            end repeat
-            return "none"
-          end tell
-        end tell
-      '`);
+                const result = await execAsync$5(`osascript "${SCRIPTS_DIR}/next-alert-tab.applescript"`);
+                streamDeck.logger.info(`NextAlertTab result: ${result.stdout.trim()}`);
                 if (result.stdout.trim() === "none") {
                     await ev.action.showAlert();
                 }
             }
             catch (err) {
-                streamDeck.logger.error(`Failed to find alert tab: ${err}`);
+                streamDeck.logger.error(`NextAlertTab failed: ${err}`);
                 await ev.action.showAlert();
             }
         }
@@ -8345,7 +8326,7 @@ let SwitchAgentAction = (() => {
             const agentName = settings.agentName || "default";
             try {
                 await focusTerminal();
-                await sendCommand(`/agent switch ${agentName}`);
+                await sendCommand$1(`/agent switch ${agentName}`);
             }
             catch (err) {
                 streamDeck.logger.error(`Failed to switch agent: ${err}`);
@@ -8361,7 +8342,7 @@ let SwitchAgentAction = (() => {
     return _classThis;
 })();
 
-const execAsync$1 = promisify(exec);
+const execAsync$4 = promisify(exec);
 let SwitchAgentPersonalityAction = (() => {
     let _classDecorators = [action({ UUID: "wtf.sauhsoj.streamdecker.switch-agent-personality" })];
     let _classDescriptor;
@@ -8400,7 +8381,7 @@ let SwitchAgentPersonalityAction = (() => {
             }
             const agentName = this.extractAgentName(agentFile);
             try {
-                await execAsync$1(`osascript -e '
+                await execAsync$4(`osascript -e '
         tell application "iTerm"
           activate
           tell current session of current window
@@ -8434,7 +8415,7 @@ let SwitchAgentPersonalityAction = (() => {
     return _classThis;
 })();
 
-const execAsync = promisify(exec);
+const execAsync$3 = promisify(exec);
 let KiroStatusAction = (() => {
     let _classDecorators = [action({ UUID: "wtf.sauhsoj.streamdecker.kiro-status" })];
     let _classDescriptor;
@@ -8481,7 +8462,7 @@ let KiroStatusAction = (() => {
         }
         async getCurrentKiroStatus() {
             try {
-                const result = await execAsync(`osascript -e '
+                const result = await execAsync$3(`osascript -e '
         tell application "iTerm"
           if (count of windows) = 0 then return ""
           tell current session of current window
@@ -8528,6 +8509,7 @@ let KiroStatusAction = (() => {
     return _classThis;
 })();
 
+const execAsync$2 = promisify(exec);
 let SendYesAction = (() => {
     let _classDecorators = [action({ UUID: "wtf.sauhsoj.streamdecker.send-yes" })];
     let _classDescriptor;
@@ -8544,12 +8526,15 @@ let SendYesAction = (() => {
             __runInitializers(_classThis, _classExtraInitializers);
         }
         async onKeyDown(ev) {
+            if (!(await checkiTermPermission())) {
+                await ev.action.showAlert();
+                return;
+            }
             try {
-                await focusTerminal();
-                await sendKeystroke("y");
+                await execAsync$2(`osascript "${SCRIPTS_DIR}/send-keystroke.applescript" "y"`);
             }
             catch (err) {
-                streamDeck.logger.error(`Failed to send yes: ${err}`);
+                streamDeck.logger.error(`SendYes failed: ${err}`);
                 await ev.action.showAlert();
             }
         }
@@ -8557,6 +8542,7 @@ let SendYesAction = (() => {
     return _classThis;
 })();
 
+const execAsync$1 = promisify(exec);
 let SendNoAction = (() => {
     let _classDecorators = [action({ UUID: "wtf.sauhsoj.streamdecker.send-no" })];
     let _classDescriptor;
@@ -8573,12 +8559,15 @@ let SendNoAction = (() => {
             __runInitializers(_classThis, _classExtraInitializers);
         }
         async onKeyDown(ev) {
+            if (!(await checkiTermPermission())) {
+                await ev.action.showAlert();
+                return;
+            }
             try {
-                await focusTerminal();
-                await sendKeystroke("n");
+                await execAsync$1(`osascript "${SCRIPTS_DIR}/send-keystroke.applescript" "n"`);
             }
             catch (err) {
-                streamDeck.logger.error(`Failed to send no: ${err}`);
+                streamDeck.logger.error(`SendNo failed: ${err}`);
                 await ev.action.showAlert();
             }
         }
@@ -8586,6 +8575,7 @@ let SendNoAction = (() => {
     return _classThis;
 })();
 
+const execAsync = promisify(exec);
 let SendThinkingAction = (() => {
     let _classDecorators = [action({ UUID: "wtf.sauhsoj.streamdecker.send-thinking" })];
     let _classDescriptor;
@@ -8602,18 +8592,90 @@ let SendThinkingAction = (() => {
             __runInitializers(_classThis, _classExtraInitializers);
         }
         async onKeyDown(ev) {
+            if (!(await checkiTermPermission())) {
+                await ev.action.showAlert();
+                return;
+            }
             try {
-                await focusTerminal();
-                await sendKeystroke("t");
+                await execAsync(`osascript "${SCRIPTS_DIR}/send-keystroke.applescript" "t"`);
             }
             catch (err) {
-                streamDeck.logger.error(`Failed to send thinking: ${err}`);
+                streamDeck.logger.error(`SendThinking failed: ${err}`);
                 await ev.action.showAlert();
             }
         }
     });
     return _classThis;
 })();
+
+promisify(exec);
+const NEO_ACTION_UUID = "wtf.sauhsoj.streamdecker.infobar-calendar";
+// Track Neo info bar contexts and their intervals
+const neoContexts = new Map();
+// Will be set after connection is available
+let sendCommand = null;
+async function updateDisplay(context) {
+    if (!sendCommand) {
+        streamDeck.logger.error("[Neo] sendCommand not available");
+        return;
+    }
+    try {
+        const now = new Date();
+        const hours = now.getHours();
+        const mins = now.getMinutes();
+        const h12 = hours % 12 || 12;
+        const ampm = hours >= 12 ? "PM" : "AM";
+        // Try setFeedbackLayout with a built-in layout
+        await sendCommand({
+            event: "setFeedbackLayout",
+            context,
+            payload: { layout: "InfobarLayouts/DigitalTime/digital_time_01.sdLayoutEx" },
+        });
+        // Then setFeedback with the time values
+        await sendCommand({
+            event: "setFeedback",
+            context,
+            payload: {
+                hour1: { value: h12.toString().padStart(2, "0") },
+                min1: { value: mins.toString().padStart(2, "0") },
+                am_pm: { value: ampm },
+            },
+        });
+        streamDeck.logger.info(`[Neo] Sent layout+feedback: ${h12}:${mins} ${ampm}`);
+    }
+    catch (err) {
+        streamDeck.logger.error(`[Neo] Update failed: ${err}`);
+    }
+}
+function registerNeoHandlers() {
+    streamDeck.logger.info("[Neo] Registering handlers...");
+    // Wait a tick for connection to be initialized
+    setTimeout(() => {
+        if (__neo_connection) {
+            sendCommand = (cmd) => __neo_connection.send(cmd);
+            __neo_connection.on("neoEvent", (data) => {
+                streamDeck.logger.info(`[Neo] Received: ${JSON.stringify(data)}`);
+                if (data.action !== NEO_ACTION_UUID)
+                    return;
+                if (data.event === "willAppear") {
+                    updateDisplay(data.context);
+                    const id = setInterval(() => updateDisplay(data.context), 30000);
+                    neoContexts.set(data.context, id);
+                }
+                if (data.event === "willDisappear") {
+                    const id = neoContexts.get(data.context);
+                    if (id)
+                        clearInterval(id);
+                    neoContexts.delete(data.context);
+                }
+            });
+            streamDeck.logger.info("[Neo] Handlers registered");
+        }
+        else {
+            streamDeck.logger.error("[Neo] __neo_connection not available");
+        }
+    }, 0);
+}
 
 // Register all actions
 streamDeck.actions.registerAction(new FocusKiroAction());
@@ -8635,6 +8697,8 @@ streamDeck.system.onApplicationDidLaunch((ev) => {
 streamDeck.system.onApplicationDidTerminate((ev) => {
     streamDeck.logger.info(`Terminal terminated: ${ev.application}`);
 });
+// Register Neo info bar handlers (uses patched SDK)
+registerNeoHandlers();
 // Connect to Stream Deck
 streamDeck.connect();
 //# sourceMappingURL=plugin.js.map
