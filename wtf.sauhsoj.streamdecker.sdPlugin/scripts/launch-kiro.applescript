@@ -1,7 +1,7 @@
 #!/usr/bin/osascript
 -- Launch Kiro: Open new iTerm tab with folder picker + kiro-cli chat
 
-set cmd to "/bin/zsh -l /Users/sauhsoj/src/personal/sauhsoj-streamdecker/wtf.sauhsoj.streamdecker.sdPlugin/scripts/launch-kiro-picker.sh"
+set cmd to "/bin/zsh -lic '/Users/sauhsoj/src/personal/sauhsoj-streamdecker/wtf.sauhsoj.streamdecker.sdPlugin/scripts/launch-kiro-picker.sh'"
 
 tell application "iTerm"
   activate

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/zsh
 # launch-kiro-picker.sh - Interactive project folder picker using fzf
 
 FZF_BIN="/Users/sauhsoj/.fzf/bin/fzf"

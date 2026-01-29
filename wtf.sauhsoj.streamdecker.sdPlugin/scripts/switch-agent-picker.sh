@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/zsh
 # switch-agent-picker.sh - Agent picker for kiro-cli using fzf
 
 AGENTS_DIR="$HOME/.kiro/agents"
