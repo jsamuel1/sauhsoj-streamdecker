@@ -1,0 +1,22 @@
+{
+  "name": "kiro-deck",
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "bun run src/main.ts",
+    "build": "bun build src/main.ts --outdir=dist --target=bun",
+    "emulator": "bun run emulator/server.ts"
+  },
+  "dependencies": {
+    "@elgato-stream-deck/node": "^6.2.0",
+    "sharp": "^0.33.5",
+    "systray2": "^2.1.4",
+    "ws": "^8.18.0",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.1",
+    "@types/ws": "^8.5.13",
+    "typescript": "^5.7.2"
+  }
+}

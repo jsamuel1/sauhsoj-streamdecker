@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kiro Deck Emulator</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <h1>Kiro Deck Emulator</h1>
+    <div class="status">
+      <span id="status-dot" class="dot disconnected"></span>
+      <span id="status-text">Disconnected</span>
+    </div>
+    
+    <!-- Neo Layout: 2x4 + page buttons + info bar -->
+    <div id="neo-layout" class="stream-deck">
+      <button class="page-btn" id="page-left">&lt;</button>
+      <div class="button-grid neo-grid">
+        <button class="deck-btn" data-index="0"><img id="btn-0"></button>
+        <button class="deck-btn" data-index="1"><img id="btn-1"></button>
+        <button class="deck-btn" data-index="2"><img id="btn-2"></button>
+        <button class="deck-btn" data-index="3"><img id="btn-3"></button>
+        <button class="deck-btn" data-index="4"><img id="btn-4"></button>
+        <button class="deck-btn" data-index="5"><img id="btn-5"></button>
+        <button class="deck-btn" data-index="6"><img id="btn-6"></button>
+        <button class="deck-btn" data-index="7"><img id="btn-7"></button>
+      </div>
+      <button class="page-btn" id="page-right">&gt;</button>
+    </div>
+    
+    <!-- Mini Layout: 2x3 -->
+    <div id="mini-layout" class="stream-deck" style="display:none">
+      <div class="button-grid mini-grid">
+        <button class="deck-btn" data-index="4"><img id="mini-btn-4"></button>
+        <button class="deck-btn" data-index="5"><img id="mini-btn-5"></button>
+        <button class="deck-btn" data-index="6"><img id="mini-btn-6"></button>
+        <button class="deck-btn" data-index="0"><img id="mini-btn-0"></button>
+        <button class="deck-btn" data-index="1"><img id="mini-btn-1"></button>
+        <button class="deck-btn" data-index="3"><img id="mini-btn-3"></button>
+      </div>
+    </div>
+    
+    <div class="info-bar" id="info-bar-container">
+      <img id="info-bar-img">
+    </div>
+    
+    <div class="controls">
+      <select id="device-select">
+        <option value="neo">Stream Deck Neo</option>
+        <option value="mini">Stream Deck Mini</option>
+      </select>
+      <button id="reconnect" class="reconnect-btn">Reconnect</button>
+    </div>
+  </div>
+  <script src="script.js"></script>
+</body>
+</html>
