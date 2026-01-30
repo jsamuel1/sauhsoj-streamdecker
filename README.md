@@ -48,13 +48,13 @@ The plugin monitors these terminal apps to detect when kiro-cli is running:
 
 ```
 ┌─────────┬─────────┬─────────┐
-│  Focus  │  Send   │  Send   │
-│  Kiro   │   Yes   │   No    │
+│  Send   │  Send   │  Send   │
+│   Yes   │   No    │    T    │
 ├─────────┼─────────┼─────────┤
-│ Switch  │  Send   │  Cycle  │
-│  Agent  │    T    │  Tabs   │
+│  Focus  │ Switch  │ Launch  │
+│  Kiro   │  Agent  │  Kiro   │
 └─────────┴─────────┴─────────┘
 ```
 
-- **Top row**: Primary actions - focus the terminal, then respond to prompts
-- **Bottom row**: Secondary actions - switch context, trust changes, navigate tabs
+- **Top row**: Response actions - Yes, No, Trust
+- **Bottom row**: Navigation - focus terminal, switch agent, launch new session
