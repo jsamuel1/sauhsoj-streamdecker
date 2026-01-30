@@ -150,6 +150,13 @@ async function main() {
     buttonImageCache.forEach((b64, i) => send({ type: 'buttonImage', index: i, data: b64 }));
     if (infoBarCache) send({ type: 'infoBar', data: infoBarCache });
   };
+  emulator.onDeviceChange = (device) => {
+    const config = getConfig();
+    if (config.deviceType !== device) {
+      saveConfig({ ...config, deviceType: device });
+      console.log(`[Main] Device type changed to: ${device}`);
+    }
+  };
   
   // Connect to Stream Deck
   deckConnection.on('connected', async (info) => {
@@ -162,6 +169,9 @@ async function main() {
       saveConfig({ ...config, deviceType: detectedType });
       console.log(`[Main] Device type updated to: ${detectedType}`);
     }
+    
+    // Notify emulator of detected device
+    emulator?.setDetectedDevice(detectedType);
     
     await initButtons();
     await updateInfoBar();

@@ -1,10 +1,7 @@
-const WS_URL = 'ws://localhost:3847';
+const WS_URL = 'ws://127.0.0.1:3847';
 let ws = null;
 let currentDevice = 'neo';
-
-// Mini layout mapping (README): Top: Yes, No, Trust | Bottom: Focus, Cycle, Launch
-// Mini indices: top row 4,5,6 | bottom row 0,1,3
-const miniIndexMap = { 0: 4, 1: 5, 2: 6, 3: 0, 4: 1, 5: 3 };
+let detectedDevice = null;
 
 function connect() {
   ws = new WebSocket(WS_URL);
@@ -39,6 +36,10 @@ function connect() {
       const img = document.getElementById('info-bar-img');
       img.src = `data:image/png;base64,${msg.data}`;
       img.classList.add('loaded');
+    } else if (msg.type === 'detectedDevice') {
+      detectedDevice = msg.device;
+      updateDeviceSelect();
+      switchDevice(msg.device);
     }
   };
 }
@@ -47,11 +48,25 @@ function send(msg) {
   if (ws?.readyState === WebSocket.OPEN) ws.send(JSON.stringify(msg));
 }
 
+function updateDeviceSelect() {
+  const select = document.getElementById('device-select');
+  select.innerHTML = '';
+  ['neo', 'mini'].forEach(d => {
+    const opt = document.createElement('option');
+    opt.value = d;
+    opt.textContent = d === 'neo' ? 'Stream Deck Neo' : 'Stream Deck Mini';
+    if (d === detectedDevice) opt.textContent += ' (detected)';
+    opt.selected = d === currentDevice;
+    select.appendChild(opt);
+  });
+}
+
 function switchDevice(device) {
   currentDevice = device;
   document.getElementById('neo-layout').style.display = device === 'neo' ? 'flex' : 'none';
   document.getElementById('mini-layout').style.display = device === 'mini' ? 'flex' : 'none';
   document.getElementById('info-bar-container').style.display = device === 'neo' ? 'block' : 'none';
+  updateDeviceSelect();
 }
 
 // Setup button listeners for both layouts
@@ -64,6 +79,10 @@ document.querySelectorAll('.deck-btn').forEach(btn => {
 document.getElementById('page-left').onclick = () => send({ type: 'pageLeft' });
 document.getElementById('page-right').onclick = () => send({ type: 'pageRight' });
 document.getElementById('reconnect').onclick = () => { ws?.close(); connect(); };
-document.getElementById('device-select').onchange = (e) => switchDevice(e.target.value);
+document.getElementById('device-select').onchange = (e) => {
+  switchDevice(e.target.value);
+  send({ type: 'setDevice', device: e.target.value });
+};
 
+updateDeviceSelect();
 connect();

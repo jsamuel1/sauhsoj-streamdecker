@@ -2,15 +2,14 @@ import SysTray from 'systray2';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { readFileSync } from 'fs';
-import { getConfig, saveConfig, type Config } from '../config/config.js';
-import { runAppleScript } from '../actions/applescript.js';
+import { exec } from 'child_process';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
-// Load icon as base64 - try multiple paths
+// Load menubar icon as base64
 const iconPaths = [
-  join(__dirname, '../../wtf.sauhsoj.kiro-icons.sdIconPack/icons/kiro-logo.png'),
-  join(__dirname, '../../../wtf.sauhsoj.kiro-icons.sdIconPack/icons/kiro-logo.png'),
+  join(__dirname, '../../wtf.sauhsoj.kiro-icons.sdIconPack/icons/kiro-menubar@2x.png'),
+  join(__dirname, '../../../wtf.sauhsoj.kiro-icons.sdIconPack/icons/kiro-menubar@2x.png'),
 ];
 
 let iconBase64 = '';
@@ -25,23 +24,12 @@ export interface TrayCallbacks {
   onConfigure?: () => void;
   onAbout?: () => void;
   onQuit?: () => void;
-  onDeviceChange?: (device: 'neo' | 'mini') => void;
 }
 
-export async function showConfigDialog(): Promise<void> {
-  const config = getConfig();
-  const result = await runAppleScript(`
-    set deviceList to {"neo", "mini"}
-    set currentDevice to "${config.deviceType}"
-    set chosen to choose from list deviceList with prompt "Select Stream Deck device:" default items {currentDevice}
-    if chosen is false then return ""
-    return item 1 of chosen
-  `);
-  
-  if (result && (result === 'neo' || result === 'mini')) {
-    saveConfig({ ...config, deviceType: result });
-    return;
-  }
+export function openConfigUI(): void {
+  // Open the emulator/config web UI in default browser
+  const htmlPath = join(__dirname, '../../emulator/index.html');
+  exec(`open "${htmlPath}"`);
 }
 
 export function createTray(callbacks: TrayCallbacks): SysTray {
@@ -66,7 +54,7 @@ export function createTray(callbacks: TrayCallbacks): SysTray {
   systray.onClick(async (action) => {
     switch (action.seq_id) {
       case 2:
-        await showConfigDialog();
+        openConfigUI();
         callbacks.onConfigure?.();
         break;
       case 3:
