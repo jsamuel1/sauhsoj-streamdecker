@@ -6,13 +6,17 @@ import { EmulatorServer } from '../emulator/server.js';
 import { createTray } from './gui/tray.js';
 import { loadConfig, saveConfig, getConfig } from './config/config.js';
 import sharp from 'sharp';
+import { GlobalFonts, createCanvas } from '@napi-rs/canvas';
 import { readFileSync, existsSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ICONS_DIR = join(__dirname, '../../wtf.sauhsoj.kiro-icons.sdIconPack/icons');
-const FONT_PATH = join(__dirname, '../fonts/AWSDiatypeRounded-Bold.ttf');
+const FONT_PATH = join(__dirname, '../fonts/Nunito-ExtraBold.ttf');
+
+// Register custom font
+GlobalFonts.registerFromPath(FONT_PATH, 'Nunito');
 
 // Button layout matching BTT: row 1 (top 0-3), row 2 (bottom 4-7)
 // BTT: row=1 col=1-4 is top row, row=2 col=1-4 is bottom row
@@ -64,28 +68,23 @@ async function loadButtonIcon(index: number): Promise<Buffer | null> {
   // Load icon and add label at bottom
   const icon = sharp(iconPath).resize(96, 96);
   
-  // Read font as base64 for embedding in SVG
-  const fontData = readFileSync(FONT_PATH).toString('base64');
+  // Create label overlay using canvas with custom font
+  const canvas = createCanvas(96, 96);
+  const ctx = canvas.getContext('2d');
+  ctx.font = '800 21px Nunito';
+  ctx.textAlign = 'center';
+  // Shadow
+  ctx.fillStyle = 'black';
+  ctx.fillText(label, 48, 89);
+  // Text
+  ctx.fillStyle = 'white';
+  ctx.fillText(label, 48, 88);
   
-  // Create label overlay SVG with embedded font - 21px bold
-  const labelSvg = `
-    <svg width="96" height="96">
-      <defs>
-        <style>
-          @font-face {
-            font-family: 'DiatypeRounded';
-            src: url('data:font/ttf;base64,${fontData}') format('truetype');
-          }
-        </style>
-      </defs>
-      <text x="48" y="89" font-family="DiatypeRounded" font-size="21" fill="black" text-anchor="middle">${label}</text>
-      <text x="48" y="88" font-family="DiatypeRounded" font-size="21" fill="white" text-anchor="middle">${label}</text>
-    </svg>
-  `;
+  const labelBuffer = canvas.toBuffer('image/png');
   
   // Composite label onto icon
   const buffer = await icon
-    .composite([{ input: Buffer.from(labelSvg), top: 0, left: 0 }])
+    .composite([{ input: labelBuffer, top: 0, left: 0 }])
     .removeAlpha()
     .raw()
     .toBuffer();

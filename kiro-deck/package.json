@@ -9,6 +9,7 @@
   },
   "dependencies": {
     "@elgato-stream-deck/node": "^6.2.0",
+    "@napi-rs/canvas": "^0.1.89",
     "sharp": "^0.33.5",
     "systray2": "^2.1.4",
     "webview-bun": "^2.4.0",

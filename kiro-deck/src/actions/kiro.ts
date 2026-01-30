@@ -1,4 +1,11 @@
 import { runAppleScript, sendKeystroke, focusApp } from './applescript.js';
+import { getConfig } from '../config/config.js';
+import { join, dirname } from 'path';
+import { fileURLToPath } from 'url';
+import { existsSync } from 'fs';
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const SCRIPTS_DIR = join(__dirname, '../../scripts');
 
 /** Find and focus iTerm tab with 'kiro-cli' in name */
 export async function focusKiro(): Promise<boolean> {
@@ -116,15 +123,41 @@ export async function switchAgentPicker(): Promise<void> {
   }
 }
 
-export async function launchKiro(folder?: string): Promise<void> {
-  await focusApp('iTerm');
-  const cmd = folder ? `cd "${folder}" && kiro-cli chat` : 'kiro-cli chat';
-  await runAppleScript(`
-    tell application "iTerm"
-      tell current window
-        create tab with default profile
-        tell current session to write text "${cmd}"
+export async function launchKiro(): Promise<void> {
+  // Check config for custom script, else use bundled script
+  const config = getConfig();
+  let scriptPath = config.scripts?.launchKiro;
+  
+  if (!scriptPath || !existsSync(scriptPath)) {
+    scriptPath = join(SCRIPTS_DIR, 'launch-kiro-picker.sh');
+  }
+  
+  if (!existsSync(scriptPath)) {
+    // Fallback: just launch kiro-cli directly
+    await focusApp('iTerm');
+    await runAppleScript(`
+      tell application "iTerm"
+        tell current window
+          create tab with default profile
+          tell current session to write text "kiro-cli chat"
+        end tell
       end tell
+    `);
+    return;
+  }
+  
+  const script = `
+    set cmd to "/bin/zsh -lic '${scriptPath}'"
+    tell application "iTerm"
+      activate
+      if (count of windows) = 0 then
+        create window with default profile command cmd
+      else
+        tell current window
+          create tab with default profile command cmd
+        end tell
+      end if
     end tell
-  `);
+  `;
+  await runAppleScript(script);
 }

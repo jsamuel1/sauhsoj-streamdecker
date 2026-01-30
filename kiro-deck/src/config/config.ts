@@ -11,6 +11,9 @@ const ConfigSchema = z.object({
   watchedCommands: z.array(z.string()).default(['kiro-cli']),
   favoriteAgents: z.array(z.string()).default(['default', 'jupyter', 'git', 'notes']),
   favoriteFolders: z.array(z.string()).default([]),
+  scripts: z.object({
+    launchKiro: z.string().optional(),
+  }).default({}),
 });
 
 export type Config = z.infer<typeof ConfigSchema>;
