@@ -8,7 +8,7 @@ Stream Deck plugin for kiro-cli integration and SA productivity.
 - **Switch Agent** - Switch kiro-cli to a different agent (configurable)
 - **Send Yes** - Send 'y' to kiro-cli for confirmation prompts
 - **Send No** - Send 'n' to kiro-cli for confirmation prompts  
-- **Send Thinking** - Send 't' to request thinking/reasoning
+- **Send T** - Send 't' to trust all pending changes
 
 ## Installation
 
@@ -41,3 +41,20 @@ The plugin monitors these terminal apps to detect when kiro-cli is running:
 - iTerm2
 - Warp
 - WezTerm
+
+## Suggested Layouts
+
+### Stream Deck Mini (6 buttons)
+
+```
+┌─────────┬─────────┬─────────┐
+│  Focus  │  Send   │  Send   │
+│  Kiro   │   Yes   │   No    │
+├─────────┼─────────┼─────────┤
+│ Switch  │  Send   │  Cycle  │
+│  Agent  │    T    │  Tabs   │
+└─────────┴─────────┴─────────┘
+```
+
+- **Top row**: Primary actions - focus the terminal, then respond to prompts
+- **Bottom row**: Secondary actions - switch context, trust changes, navigate tabs
