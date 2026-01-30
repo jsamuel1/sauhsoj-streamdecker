@@ -1,66 +1,72 @@
-# Kiro Stream Deck BTT Preset
+# Kiro Stream Deck BTT Setup
 
-BetterTouchTool configuration for Stream Deck Neo with Kiro CLI controls and calendar info bar.
+BetterTouchTool configuration for Stream Deck with Kiro CLI controls.
 
 ## Features
 
-### 6 Buttons
-- **Launch Kiro** - Opens new iTerm tab with `kiro-cli chat`
-- **Focus Kiro** - Activates iTerm and focuses first kiro-cli tab
-- **Yes** - Sends 'y' keystroke to iTerm
-- **No** - Sends 'n' keystroke to iTerm
+### 8 Buttons
+
+- **Focus** - Activates iTerm and focuses first kiro-cli tab
 - **Cycle** - Cycles through kiro-cli tabs
-- **Think** - Sends "think about this" + Enter
+- **Alert** - Finds idle kiro-cli tabs
+- **Launch** - Opens new iTerm tab with folder picker + kiro-cli
+- **Yes** - Sends 'y' to iTerm
+- **No** - Sends 'n' to iTerm
+- **Trust** - Sends 't' to trust all pending changes
+- **Agent** - Switch kiro-cli agent
 
 ### Neo LCD Info Bar
+
 - Shows next calendar event within 2 hours
-- Color-coded urgency:
-  - 🔴 Red: < 5 minutes
-  - 🟡 Yellow: < 15 minutes
-  - 🟢 Green: 15+ minutes
+- Color-coded urgency (red < 5min, yellow < 15min, green 15+min)
 - Updates every 30 seconds
 
 ## Setup
 
 ### Prerequisites
+
 1. Install BetterTouchTool: `brew install --cask bettertouchtool`
 2. Quit Elgato Stream Deck app
 3. In BTT preferences, enable "Fully Controlled by BetterTouchTool" for Stream Deck
+4. Enable BTT scripting server (Preferences → Advanced → Enable Scripting Server)
 
 ### Installation
 
-Run the setup script to add all triggers:
+From the repo root, run:
 
 ```bash
-./setup-btt.sh
+python3 create-btt-buttons.py --apply
 ```
 
-Or import manually via BTT's AppleScript API (see setup-btt.sh for details).
+### Commands
 
-### Manual Import (Alternative)
-
-If the setup script doesn't work, you can import the preset file:
-1. Open BetterTouchTool
-2. Go to Presets menu
-3. Import `kiro-streamdeck.bttpreset`
+```bash
+python3 create-btt-buttons.py --list     # Show button status
+python3 create-btt-buttons.py --apply    # Apply all buttons
+python3 create-btt-buttons.py --delete   # Delete all buttons
+python3 create-btt-buttons.py KIRO-YES   # Apply single button
+```
 
 ## Files
 
-- `kiro-streamdeck.bttpreset` - BTT preset JSON (for manual import)
+- `../create-btt-buttons.py` - Main installer (uses shared scripts)
 - `calendar-widget.applescript` - Calendar script for Neo LCD
-- `setup-btt.sh` - Setup script to add triggers via AppleScript API
+- `kiro-streamdeck.bttpreset` - BTT preset JSON (manual import fallback)
 
 ## Troubleshooting
 
 ### Buttons not appearing
+
 - Ensure Stream Deck is in "Fully Controlled by BTT" mode
 - Check BTT preferences → Stream Deck section
 - Try restarting BTT
 
 ### Calendar not updating
+
 - Grant Calendar access to BetterTouchTool in System Preferences → Privacy
-- Test script manually: `osascript calendar-widget.applescript`
+- Test script manually: `osascript btt/calendar-widget.applescript`
 
 ### Keystrokes not working
+
 - Grant Accessibility access to BetterTouchTool
 - Grant Accessibility access to iTerm
