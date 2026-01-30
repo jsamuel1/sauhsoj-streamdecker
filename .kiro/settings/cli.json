@@ -1,0 +1,5 @@
+{
+  "chat.enableKnowledge": true,
+  "chat.enableThinking": true,
+  "chat.enableTodoList": true
+}

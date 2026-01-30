@@ -1,0 +1,93 @@
+{
+  "name": "streamdecker",
+  "description": "Kiro Deck development - Stream Deck Neo controller app with context-aware buttons, dynamic info bar, and AI-generated icons. Use for implementing features, debugging, and working on the streamdecker project.",
+  "prompt": "You are developing Kiro Deck, a Stream Deck Neo controller app. Use the project documentation in docs/ for requirements, tech stack, and implementation details. Use Bun runtime, @elgato-stream-deck/node for hardware, and Nova Canvas for icon generation. Follow the Kiro color palette and design system.",
+  "tools": ["*"],
+  "allowedTools": [
+    "fs_read",
+    "grep",
+    "glob",
+    "knowledge",
+    "thinking",
+    "todo_list",
+    "code",
+    "web_search",
+    "web_fetch",
+    "use_subagent",
+    "@coding-gateway/*",
+    "@aws-api-mcp/suggest_aws_commands",
+    "@aws-api-mcp/call_aws",
+    "@builder-mcp/SkillsTool",
+    "@builder-mcp/Delegate",
+    "@builder-mcp/ReadInternalWebsites",
+    "@builder-mcp/InternalCodeSearch",
+    "@builder-mcp/InternalSearch",
+    "@builder-mcp/TicketingReadActions",
+    "@builder-mcp/TaskeiGetRooms",
+    "@builder-mcp/TaskeiListTasks",
+    "@builder-mcp/ToolReactivationTool",
+    "@builder-mcp/WorkspaceSearch",
+    "@builder-mcp/code"
+  ],
+  "toolsSettings": {
+    "execute_bash": {
+      "autoAllowReadonly": true,
+      "allowedCommands": [
+        "^(cd [^ ]+ && )?(source \\.venv/bin/activate && )?([A-Z_]+=[^ ]+ )*(git (status|log|diff|show|branch|blame|shortlog|rev-parse|ls-files|ls-tree)|kubectl get|ls|cat|head|tail|wc|find|grep|which|whoami|pwd|date|env|echo|file|du|df|tree|jq|yq|rg|npm|pnpm|bun|bunx|npx|node|uv|pip|python3?|gh|aws|cdk( (deploy|synth|diff|list|bootstrap|context|doctor))?|brazil-build|brazil-recursive-cmd|builder-mcp|toolbox|kiro-cli|wt)( [^;|&`]+)?( 2>&1)?( \\| (tail|head|grep)( -[0-9n]+)?)?$"
+      ]
+    },
+    "use_aws": {
+      "autoAllowReadonly": true,
+      "allowedServices": ["bedrock", "bedrock-runtime"]
+    },
+    "fs_write": {
+      "allowedPaths": ["./**"]
+    }
+  },
+  "resources": [
+    "file://README.md",
+    "file://.kiro/steering/**/*.md",
+    "skill://docs/**/*.md",
+    "skill://~/.kiro/skills/**/SKILL.md",
+    {
+      "type": "knowledgeBase",
+      "source": "file://./docs",
+      "name": "streamdecker-docs",
+      "description": "Kiro Deck project documentation including requirements, tech stack, and research",
+      "indexType": "best",
+      "include": ["**/*.md"],
+      "autoUpdate": true
+    }
+  ],
+  "mcpServers": {
+    "builder-mcp": {
+      "command": "builder-mcp",
+      "args": [
+        "--agent-sop-paths", "/Users/sauhsoj/.aim/packages/SauhsojAIAgentCapabilties-1.0/agent-sops",
+        "--agent-sop-filter", "*",
+        "--skill-paths", "/Users/sauhsoj/.aim/packages/SauhsojAIAgentCapabilties-1.0/skills",
+        "--skill-name-filter", "*"
+      ],
+      "env": {
+        "TOOL_PERSONALIZATION_ENABLED": "true",
+        "TOOL_PERSONALIZATION_ROLLOUT_PERCENTAGE": "100"
+      }
+    },
+    "coding-gateway": {
+      "command": "mcp-proxy-for-aws",
+      "args": ["${env:CODING_MCP_GATEWAY_URL}"],
+      "env": {
+        "AWS_PROFILE": "${env:CODING_MCP_GATEWAY_PROFILE}",
+        "PYTHONWARNINGS": "ignore::DeprecationWarning"
+      },
+      "timeout": 120000
+    },
+    "aws-api-mcp": {
+      "command": "aws-api-mcp"
+    }
+  },
+  "model": "claude-opus-4-5",
+  "keyboardShortcut": "ctrl+d",
+  "welcomeMessage": "Ready to work on Kiro Deck! What would you like to build?",
+  "includeMcpJson": true
+}

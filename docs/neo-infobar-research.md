@@ -1,10 +1,43 @@
+---
+name: neo-infobar-research
+description: Research findings on controlling the Stream Deck Neo info bar. Documents failed approaches (Elgato SDK, BetterTouchTool) and successful solution (python-elgato-streamdeck / node-elgato-stream-deck libraries). Read when troubleshooting Neo LCD issues or understanding why certain approaches don't work.
+---
+
 # Neo Info Bar Research
 
 Investigation into how Elgato's Stream Deck Neo info bar works and whether third-party plugins can control it.
 
 ## Summary
 
-**Conclusion: Neo info bar is native-only. Third-party plugins cannot control it.**
+**Conclusion: Neo info bar cannot be dynamically updated via either Elgato SDK or BetterTouchTool API.**
+
+## Approaches Attempted
+
+### 1. Elgato Stream Deck SDK (Native Plugin)
+- Neo info bar uses native C++ Key Adaptors (`KA_DigitalTime`, `KA_Pagination`)
+- Third-party plugins use `KA_Custom` which doesn't support Neo controller type
+- Only "Keypad" and "Encoder" are valid third-party controller types
+- `setTitle`, `setImage`, `setFeedback`, `setFeedbackLayout` all sent successfully but no display update
+- **Result: Not possible**
+
+### 2. BetterTouchTool (BTT)
+- BTT supports Neo LCD as trigger type 790 ("Stream Deck Neo LCD Item")
+- Can create static text via `BTTStreamDeckAttributedTitle` (RTF format)
+- Attempted dynamic updates via:
+  - `update_stream_deck_widget` API with `text` parameter - no effect
+  - `update_stream_deck_widget` with `json` parameter containing RTF - no effect
+  - `update_trigger` API with `BTTTriggerConfig` - no effect
+  - `refresh_widget` API - no effect
+  - AppleScript `update_stream_deck_widget` command - no effect
+- Community forum confirms dynamic widget support for Neo LCD is a requested feature (not yet implemented)
+- **Result: Not possible (feature not implemented)**
+
+### Info Bar Specs
+- Dimensions: 232x50 pixels
+- BTT trigger type: 790
+- Uses RTF for text formatting (`BTTStreamDeckAttributedTitle`)
+
+## Original Native Research
 
 The Neo info bar is controlled exclusively by native C++ Key Adaptors (`KA_DigitalTime`, `KA_Pagination`) that use internal layout services. There is no SDK path for third-party plugins to render to the info bar.
 
