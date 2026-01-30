@@ -2,7 +2,7 @@ import SysTray from 'systray2';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { readFileSync } from 'fs';
-import { exec } from 'child_process';
+import { spawn } from 'child_process';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -26,10 +26,24 @@ export interface TrayCallbacks {
   onQuit?: () => void;
 }
 
+let configWindowProc: ReturnType<typeof spawn> | null = null;
+
 export function openConfigUI(): void {
-  // Open the emulator/config web UI in default browser
-  const htmlPath = join(__dirname, '../../emulator/index.html');
-  exec(`open "${htmlPath}"`);
+  if (configWindowProc) return;
+  
+  const webviewScript = join(__dirname, 'webview.ts');
+  console.log(`[Tray] Opening webview: ${webviewScript}`);
+  
+  configWindowProc = spawn('bun', ['run', webviewScript], { 
+    stdio: 'inherit',
+    cwd: join(__dirname, '../..'),
+  });
+  
+  configWindowProc.on('error', (err) => console.error('[Tray] Webview error:', err));
+  configWindowProc.on('close', (code) => {
+    console.log(`[Tray] Webview closed with code ${code}`);
+    configWindowProc = null;
+  });
 }
 
 export function createTray(callbacks: TrayCallbacks): SysTray {

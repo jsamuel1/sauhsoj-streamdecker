@@ -1,50 +1,54 @@
 #!/usr/bin/env python3
 """
 Generate menubar icon for Kiro Deck.
-Creates a simplified ghost mascot with transparent background from existing icon.
+Simple white ghost with thin black outline.
 """
 
-from PIL import Image
+from PIL import Image, ImageDraw
 import os
 
 ICON_DIR = os.path.dirname(os.path.abspath(__file__))
-SOURCE_PATH = os.path.join(ICON_DIR, "icons", "kiro-focus.png")
 OUTPUT_DIR = os.path.join(ICON_DIR, "icons")
 
 def create_menubar_icon():
-    """Create menubar icon from existing kiro-focus icon."""
-    img = Image.open(SOURCE_PATH).convert("RGBA")
+    """Create simple ghost icon for menubar."""
     
-    # Get pixel data
-    pixels = img.load()
-    width, height = img.size
+    # Draw a simple ghost shape at 44x44
+    size = 44
+    img = Image.new("RGBA", (size, size), (0, 0, 0, 0))
+    draw = ImageDraw.Draw(img)
     
-    # Create new image with transparent background
-    new_img = Image.new("RGBA", (width, height), (0, 0, 0, 0))
-    new_pixels = new_img.load()
+    # Ghost body - rounded top, wavy bottom
+    # Main body outline
+    outline_color = (0, 0, 0, 255)
+    fill_color = (255, 255, 255, 255)
     
-    for y in range(height):
-        for x in range(width):
-            r, g, b, a = pixels[x, y]
-            
-            # Detect the purple ghost (not dark background)
-            # Background is dark navy ~#1a1a2e (26, 26, 46)
-            is_background = r < 60 and g < 60 and b < 80
-            
-            if not is_background:
-                # Convert to white silhouette for menubar
-                # Use luminance to determine opacity
-                lum = (r + g + b) / 3
-                alpha = min(255, int(lum * 1.5))
-                new_pixels[x, y] = (255, 255, 255, alpha)
+    # Draw filled ghost shape
+    # Head (ellipse)
+    draw.ellipse([8, 4, 36, 28], fill=fill_color, outline=outline_color, width=2)
     
-    # Resize for menubar (22x22 standard, 44x44 retina)
-    img_22 = new_img.resize((22, 22), Image.Resampling.LANCZOS)
-    img_44 = new_img.resize((44, 44), Image.Resampling.LANCZOS)
+    # Body (rectangle connecting to head)
+    draw.rectangle([8, 16, 36, 36], fill=fill_color)
+    draw.line([8, 16, 8, 36], fill=outline_color, width=2)
+    draw.line([36, 16, 36, 36], fill=outline_color, width=2)
     
-    # Save
+    # Wavy bottom - 3 bumps
+    draw.ellipse([6, 30, 18, 42], fill=fill_color, outline=outline_color, width=2)
+    draw.ellipse([15, 30, 29, 42], fill=fill_color, outline=outline_color, width=2)
+    draw.ellipse([26, 30, 38, 42], fill=fill_color, outline=outline_color, width=2)
+    
+    # Cover internal lines with white
+    draw.rectangle([10, 18, 34, 32], fill=fill_color)
+    
+    # Eyes - two black dots
+    draw.ellipse([14, 14, 19, 19], fill=outline_color)
+    draw.ellipse([25, 14, 30, 19], fill=outline_color)
+    
+    # Save both sizes
+    img_22 = img.resize((22, 22), Image.Resampling.LANCZOS)
+    
     img_22.save(os.path.join(OUTPUT_DIR, "kiro-menubar.png"), "PNG")
-    img_44.save(os.path.join(OUTPUT_DIR, "kiro-menubar@2x.png"), "PNG")
+    img.save(os.path.join(OUTPUT_DIR, "kiro-menubar@2x.png"), "PNG")
     
     print(f"Created: {os.path.join(OUTPUT_DIR, 'kiro-menubar.png')}")
     print(f"Created: {os.path.join(OUTPUT_DIR, 'kiro-menubar@2x.png')}")

@@ -12,6 +12,7 @@ import { fileURLToPath } from 'url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ICONS_DIR = join(__dirname, '../../wtf.sauhsoj.kiro-icons.sdIconPack/icons');
+const FONT_PATH = join(__dirname, '../fonts/AWSDiatypeRounded-Bold.ttf');
 
 // Button layout matching BTT: row 1 (top 0-3), row 2 (bottom 4-7)
 // BTT: row=1 col=1-4 is top row, row=2 col=1-4 is bottom row
@@ -19,12 +20,12 @@ const ICONS_DIR = join(__dirname, '../../wtf.sauhsoj.kiro-icons.sdIconPack/icons
 const buttonActions = [
   'kiro.focus',    // 0 - top left (Focus)
   'kiro.cycle',    // 1 - (Cycle)
-  'kiro.alert',    // 2 - (Alert) - TODO
+  'kiro.alert',    // 2 - (Alert)
   'kiro.launch',   // 3 - top right (Launch)
   'kiro.yes',      // 4 - bottom left (Yes)
   'kiro.no',       // 5 - (No)
   'kiro.thinking', // 6 - (Trust/Thinking)
-  'kiro.agent',    // 7 - bottom right (Agent) - TODO
+  'kiro.agent',    // 7 - bottom right (Agent)
 ];
 
 const buttonIcons = [
@@ -37,6 +38,8 @@ const buttonIcons = [
   'kiro-trust-96.png',
   'kiro-agent-96.png',
 ];
+
+const buttonLabels = ['Focus', 'Cycle', 'Alert', 'Launch', 'Yes', 'No', 'Trust', 'Agent'];
 
 let emulator: EmulatorServer | null = null;
 let infoBarSourceIndex = 0;
@@ -56,12 +59,38 @@ async function loadButtonIcon(index: number): Promise<Buffer | null> {
     return null;
   }
   
-  // Convert to raw RGB (3 channels) for Stream Deck - must be exactly 96*96*3 bytes
-  return sharp(iconPath)
-    .resize(96, 96)
+  const label = buttonLabels[index];
+  
+  // Load icon and add label at bottom
+  const icon = sharp(iconPath).resize(96, 96);
+  
+  // Read font as base64 for embedding in SVG
+  const fontData = readFileSync(FONT_PATH).toString('base64');
+  
+  // Create label overlay SVG with embedded font - 21px bold
+  const labelSvg = `
+    <svg width="96" height="96">
+      <defs>
+        <style>
+          @font-face {
+            font-family: 'DiatypeRounded';
+            src: url('data:font/ttf;base64,${fontData}') format('truetype');
+          }
+        </style>
+      </defs>
+      <text x="48" y="89" font-family="DiatypeRounded" font-size="21" fill="black" text-anchor="middle">${label}</text>
+      <text x="48" y="88" font-family="DiatypeRounded" font-size="21" fill="white" text-anchor="middle">${label}</text>
+    </svg>
+  `;
+  
+  // Composite label onto icon
+  const buffer = await icon
+    .composite([{ input: Buffer.from(labelSvg), top: 0, left: 0 }])
     .removeAlpha()
     .raw()
     .toBuffer();
+  
+  return buffer;
 }
 
 async function updateInfoBar() {

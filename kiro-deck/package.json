@@ -11,6 +11,7 @@
     "@elgato-stream-deck/node": "^6.2.0",
     "sharp": "^0.33.5",
     "systray2": "^2.1.4",
+    "webview-bun": "^2.4.0",
     "ws": "^8.18.0",
     "zod": "^3.23.8"
   },

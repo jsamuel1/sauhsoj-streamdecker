@@ -5,6 +5,8 @@
   --purple: #9046ff;
   --text: #fafafa;
   --muted: #a1a1aa;
+  --green: #10b981;
+  --red: #ef4444;
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -19,31 +21,46 @@ body {
   justify-content: center;
 }
 
-.container { text-align: center; }
+.container { text-align: center; max-width: 600px; }
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
 
 h1 {
   font-size: 1.5rem;
-  margin-bottom: 1rem;
   color: var(--purple);
 }
 
-.status {
+.header-controls {
   display: flex;
-  align-items: center;
-  justify-content: center;
   gap: 0.5rem;
-  margin-bottom: 1.5rem;
-  color: var(--muted);
 }
 
-.dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
+#device-select {
+  padding: 0.4rem 0.6rem;
+  background: var(--btn);
+  color: var(--text);
+  border: 1px solid var(--btn);
+  border-radius: 0.4rem;
+  cursor: pointer;
+  font-size: 0.85rem;
 }
 
-.dot.connected { background: #10b981; }
-.dot.disconnected { background: #ef4444; }
+.edit-btn {
+  padding: 0.4rem 0.8rem;
+  background: var(--btn);
+  color: var(--text);
+  border: 1px solid var(--btn);
+  border-radius: 0.4rem;
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+
+.edit-btn:hover { border-color: var(--purple); }
 
 .stream-deck {
   display: flex;
@@ -71,19 +88,14 @@ h1 {
   color: var(--text);
 }
 
-.button-grid {
-  display: grid;
-  gap: 8px;
-}
+.button-grid { display: grid; gap: 8px; }
+.neo-grid { grid-template-columns: repeat(4, 96px); grid-template-rows: repeat(2, 1fr); }
+.mini-grid { grid-template-columns: repeat(3, 96px); grid-template-rows: repeat(2, 1fr); }
 
-.neo-grid {
-  grid-template-columns: repeat(4, 96px);
-  grid-template-rows: repeat(2, 96px);
-}
-
-.mini-grid {
-  grid-template-columns: repeat(3, 96px);
-  grid-template-rows: repeat(2, 96px);
+.btn-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .deck-btn {
@@ -109,6 +121,13 @@ h1 {
 
 .deck-btn img.loaded { display: block; }
 
+.btn-action {
+  font-size: 0.65rem;
+  color: var(--muted);
+  margin-top: 4px;
+  font-family: monospace;
+}
+
 .info-bar {
   width: 248px;
   height: 58px;
@@ -126,29 +145,26 @@ h1 {
 
 .info-bar img.loaded { display: block; }
 
-.reconnect-btn {
+.status-btn {
   padding: 0.5rem 1.5rem;
-  background: var(--purple);
-  color: var(--text);
   border: none;
   border-radius: 0.5rem;
   cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.2s;
 }
 
-.reconnect-btn:hover { opacity: 0.9; }
-
-.controls {
-  display: flex;
-  gap: 1rem;
-  justify-content: center;
-  align-items: center;
-}
-
-#device-select {
-  padding: 0.5rem;
-  background: var(--btn);
+.status-btn.connected {
+  background: var(--green);
   color: var(--text);
-  border: 1px solid var(--btn);
-  border-radius: 0.5rem;
-  cursor: pointer;
+  cursor: default;
+}
+
+.status-btn.disconnected {
+  background: var(--red);
+  color: var(--text);
+}
+
+.status-btn.disconnected:hover {
+  opacity: 0.9;
 }
