@@ -7,7 +7,7 @@ import { existsSync } from 'fs';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const SCRIPTS_DIR = join(__dirname, '../../scripts');
 
-/** Find and focus iTerm tab with 'kiro-cli' in name */
+/** Find and focus iTerm tab with kiro-cli running */
 export async function focusKiro(): Promise<boolean> {
   const result = await runAppleScript(`
     tell application "iTerm"
@@ -15,7 +15,9 @@ export async function focusKiro(): Promise<boolean> {
       repeat with w in windows
         repeat with t in tabs of w
           set s to current session of t
-          if name of s contains "kiro-cli" then
+          set theTty to tty of s
+          set hasKiro to (do shell script "ps -t " & theTty & " -o command= | grep -q kiro-cli && echo yes || echo no")
+          if hasKiro is "yes" then
             select t
             return "found"
           end if
@@ -27,7 +29,7 @@ export async function focusKiro(): Promise<boolean> {
   return result === 'found';
 }
 
-/** Cycle through kiro-cli tabs */
+/** Cycle through kiro-cli tabs (skips tabs that are processing) */
 export async function cycleKiroTabs(): Promise<void> {
   await focusApp('iTerm');
   await runAppleScript(`
@@ -38,14 +40,15 @@ export async function cycleKiroTabs(): Promise<void> {
         repeat with i from 1 to n
           if tab i is current tab then set c to i
         end repeat
-        repeat with i from 1 to n
+        -- Find next idle kiro tab after current
+        repeat with i from 1 to n - 1
           set idx to ((c + i - 1) mod n) + 1
-          if idx ≠ c then
-            set s to current session of tab idx
-            if name of s contains "kiro-cli" then
-              select tab idx
-              return
-            end if
+          set s to current session of tab idx
+          set theTty to tty of s
+          set hasKiro to (do shell script "ps -t " & theTty & " -o command= | grep -q kiro-cli && echo yes || echo no")
+          if hasKiro is "yes" and is processing of s is false then
+            select tab idx
+            return
           end if
         end repeat
       end tell
@@ -53,6 +56,7 @@ export async function cycleKiroTabs(): Promise<void> {
   `);
 }
 
+/** Find next idle kiro-cli tab (not processing) */
 /** Find next idle kiro-cli tab (not processing) */
 export async function alertIdleKiro(): Promise<void> {
   await runAppleScript(`
@@ -68,7 +72,9 @@ export async function alertIdleKiro(): Promise<void> {
           set idx to ((c + i - 1) mod n) + 1
           if idx ≠ c then
             set s to current session of tab idx
-            if name of s contains "kiro-cli" and is processing of s is false then
+            set theTty to tty of s
+            set hasKiro to (do shell script "ps -t " & theTty & " -o command= | grep -q kiro-cli && echo yes || echo no")
+            if hasKiro is "yes" and is processing of s is false then
               select tab idx
               return
             end if
