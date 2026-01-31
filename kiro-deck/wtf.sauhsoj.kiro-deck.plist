@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>wtf.sauhsoj.kiro-deck</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>/Users/sauhsoj/.bun/bin/bun</string>
+        <string>run</string>
+        <string>/Users/sauhsoj/src/personal/sauhsoj-streamdecker/kiro-deck/src/main.ts</string>
+    </array>
+    <key>RunAtLoad</key>
+    <true/>
+    <key>KeepAlive</key>
+    <true/>
+    <key>StandardOutPath</key>
+    <string>/tmp/kiro-deck.log</string>
+    <key>StandardErrorPath</key>
+    <string>/tmp/kiro-deck.log</string>
+    <key>WorkingDirectory</key>
+    <string>/Users/sauhsoj/src/personal/sauhsoj-streamdecker/kiro-deck</string>
+</dict>
+</plist>
