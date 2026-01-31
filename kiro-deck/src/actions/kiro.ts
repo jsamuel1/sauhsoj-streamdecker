@@ -4,8 +4,17 @@ import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { existsSync } from 'fs';
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
-const SCRIPTS_DIR = join(__dirname, '../../scripts');
+// Get scripts directory - works in both dev and .app bundle
+function getScriptsDir(): string {
+  const execPath = process.execPath;
+  if (execPath.includes('.app/Contents/MacOS')) {
+    return join(dirname(execPath), '..', 'Resources', 'scripts');
+  }
+  const __dirname = dirname(fileURLToPath(import.meta.url));
+  return join(__dirname, '../../scripts');
+}
+
+const SCRIPTS_DIR = getScriptsDir();
 
 /** Find and focus iTerm tab with kiro-cli running */
 export async function focusKiro(): Promise<boolean> {

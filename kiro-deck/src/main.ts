@@ -12,13 +12,38 @@ import { readFileSync, existsSync, readdirSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
-const ICONS_DIR = join(__dirname, '../../wtf.sauhsoj.kiro-icons.sdIconPack/icons');
-const FONT_PATH = join(__dirname, '../fonts/Nunito-ExtraBold.ttf');
+// Detect if running from .app bundle or dev
+function getResourcePath(subpath: string): string {
+  // Check for .app bundle structure
+  const execPath = process.execPath;
+  if (execPath.includes('.app/Contents/MacOS')) {
+    const resourcesDir = join(dirname(execPath), '..', 'Resources');
+    return join(resourcesDir, subpath);
+  }
+  // Dev mode - relative to source
+  const __dirname = dirname(fileURLToPath(import.meta.url));
+  const devPaths: Record<string, string> = {
+    'icons': join(__dirname, '../../wtf.sauhsoj.kiro-icons.sdIconPack/icons'),
+    'fonts': join(__dirname, '../fonts'),
+    'scripts': join(__dirname, '../scripts'),
+    'emulator': join(__dirname, '../emulator'),
+  };
+  const base = subpath.split('/')[0];
+  if (devPaths[base]) {
+    return join(devPaths[base], ...subpath.split('/').slice(1));
+  }
+  return join(__dirname, '..', subpath);
+}
+
+const ICONS_DIR = getResourcePath('icons');
+const FONT_PATH = getResourcePath('fonts/Nunito-ExtraBold.ttf');
 const RECENT_AGENTS_FILE = join(process.env.HOME || '', '.kiro', 'kiro-picker-recent-agents');
 
 // Register custom font
 GlobalFonts.registerFromPath(FONT_PATH, 'Nunito');
+
+// Export for use in actions
+export { getResourcePath };
 
 // Page state
 type Page = 'main' | 'agents';
