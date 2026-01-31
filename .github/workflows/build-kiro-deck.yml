@@ -59,4 +59,30 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           files: kiro-deck/dist/Kiro Deck.zip
-          generate_release_notes: true
+          body_path: kiro-deck/releases/${{ github.ref_name }}.md
+          body: |
+            ## Kiro Deck v0.1.0
+            
+            Stream Deck controller for kiro-cli.
+            
+            ### Features
+            - 8 buttons (Neo) / 6 buttons (Mini) for kiro-cli control
+            - Focus, Cycle, Alert, Launch, Yes, No, Trust, Agent actions
+            - Agent picker page - select agents directly from Stream Deck
+            - Info bar status display
+            - Web emulator at http://127.0.0.1:3848
+            - Menubar tray with config window
+            
+            ### Installation
+            1. Download `Kiro Deck.zip`
+            2. Extract and move `Kiro Deck.app` to `/Applications`
+            3. Launch from Applications or Spotlight
+            
+            ### Requirements
+            - macOS 12+
+            - Stream Deck Neo or Mini
+            - iTerm2
+            - Bun runtime (bundled in app)
+            
+            ### Signed & Notarized
+            This release is code-signed and notarized by Apple.
