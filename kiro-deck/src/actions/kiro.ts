@@ -110,6 +110,13 @@ export async function switchAgent(name: string): Promise<void> {
   `);
 }
 
+export async function switchAgentWithShortcut(shortcut: string): Promise<void> {
+  // Use keyboard shortcut instead of /agent switch command
+  await focusApp('iTerm');
+  await Bun.sleep(100);
+  await sendKeystroke(shortcut);
+}
+
 /** Show agent picker dialog and switch */
 export async function switchAgentPicker(): Promise<void> {
   // Get agents from ~/.kiro/agents/*.json

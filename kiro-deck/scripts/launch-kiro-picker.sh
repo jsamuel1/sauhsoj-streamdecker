@@ -1,6 +1,8 @@
 #!/bin/zsh
 # launch-kiro-picker.sh - Interactive project folder picker using fzf
 
+export STREAMDECKER=true
+
 FZF_BIN="${FZF_BIN:-$(command -v fzf)}"
 KIRO_CLI="${KIRO_CLI:-$(command -v kiro-cli)}"
 RECENT_DIRS_FILE="${HOME}/.kiro/kiro-picker-recent-dirs"

@@ -1,6 +1,6 @@
 import { deckConnection } from './deck/connection.js';
 import { executeAction } from './actions/index.js';
-import { switchAgent } from './actions/kiro.js';
+import { switchAgent, switchAgentWithShortcut } from './actions/kiro.js';
 import { renderInfoBar } from './infobar/renderer.js';
 import { sources } from './infobar/sources.js';
 import { EmulatorServer } from '../emulator/server.js';
@@ -164,6 +164,18 @@ async function updateInfoBar() {
   emulator?.sendInfoBar(b64);
 }
 
+async function showInfoBarMessage(text: string, color: string = '#9046ff', durationMs: number = 1500) {
+  const buffer = await renderInfoBar(text, color);
+  await deckConnection.setInfoBar(buffer);
+  const pngBuffer = await sharp(buffer, { raw: { width: 248, height: 58, channels: 4 } })
+    .png()
+    .toBuffer();
+  emulator?.sendInfoBar(pngBuffer.toString('base64'));
+  
+  // Restore normal info bar after delay
+  setTimeout(() => updateInfoBar(), durationMs);
+}
+
 async function handleButtonDown(index: number) {
   console.log(`[Main] Button ${index} pressed (page: ${currentPage})`);
   
@@ -173,7 +185,18 @@ async function handleButtonDown(index: number) {
     if (agentName) {
       console.log(`[Main] Switching to agent: ${agentName}`);
       await showMainPage();
-      await switchAgent(agentName);
+      
+      // Show info bar message
+      await showInfoBarMessage(`→ Agent [${agentName}]`);
+      
+      // Check for keyboard shortcut
+      const config = getConfig();
+      const shortcut = config.agentShortcuts[agentName];
+      if (shortcut) {
+        await switchAgentWithShortcut(shortcut);
+      } else {
+        await switchAgent(agentName);
+      }
     }
     return;
   }

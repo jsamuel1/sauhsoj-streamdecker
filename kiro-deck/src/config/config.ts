@@ -15,6 +15,7 @@ const ConfigSchema = z.object({
     launchKiro: z.string().optional(),
     switchAgent: z.string().optional(),
   }).default({}),
+  agentShortcuts: z.record(z.string()).default({}), // agent name -> keyboard shortcut
 });
 
 export type Config = z.infer<typeof ConfigSchema>;
