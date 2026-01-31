@@ -1,23 +1,28 @@
 import SysTray from 'systray2';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
-import { readFileSync } from 'fs';
+import { readFileSync, existsSync } from 'fs';
 import { spawn } from 'child_process';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
-// Load menubar icon as base64
-const iconPaths = [
-  join(__dirname, '../../wtf.sauhsoj.kiro-icons.sdIconPack/icons/kiro-menubar@2x.png'),
-  join(__dirname, '../../../wtf.sauhsoj.kiro-icons.sdIconPack/icons/kiro-menubar@2x.png'),
-];
+// Get icon path - works in both dev and .app bundle
+function getIconPath(): string {
+  const execPath = process.execPath;
+  if (execPath.includes('.app/Contents/MacOS')) {
+    return join(dirname(execPath), '..', 'Resources', 'icons', 'kiro-menubar@2x.png');
+  }
+  return join(__dirname, '../../wtf.sauhsoj.kiro-icons.sdIconPack/icons/kiro-menubar@2x.png');
+}
 
+// Load menubar icon as base64
 let iconBase64 = '';
-for (const p of iconPaths) {
-  try {
-    iconBase64 = readFileSync(p).toString('base64');
-    break;
-  } catch {}
+const iconPath = getIconPath();
+if (existsSync(iconPath)) {
+  iconBase64 = readFileSync(iconPath).toString('base64');
+  console.log(`[Tray] Loaded icon from: ${iconPath}`);
+} else {
+  console.log(`[Tray] Icon not found: ${iconPath}`);
 }
 
 export interface TrayCallbacks {
@@ -47,6 +52,9 @@ export function openConfigUI(): void {
 }
 
 export function createTray(callbacks: TrayCallbacks): SysTray {
+  console.log('[Tray] Creating systray...');
+  console.log(`[Tray] Icon base64 length: ${iconBase64.length}`);
+  
   const systray = new SysTray({
     menu: {
       icon: iconBase64,
@@ -61,9 +69,11 @@ export function createTray(callbacks: TrayCallbacks): SysTray {
         { title: 'Quit', enabled: true },
       ],
     },
-    debug: false,
+    debug: true,
     copyDir: true,
   });
+  
+  console.log('[Tray] Systray created');
 
   systray.onClick(async (action) => {
     switch (action.seq_id) {

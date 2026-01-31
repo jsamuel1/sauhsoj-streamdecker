@@ -16,6 +16,8 @@ const ConfigSchema = z.object({
     switchAgent: z.string().optional(),
   }).default({}),
   agentShortcuts: z.record(z.string()).default({}), // agent name -> keyboard shortcut
+  launchAtLogin: z.boolean().default(true),
+  firstRun: z.boolean().default(true),
 });
 
 export type Config = z.infer<typeof ConfigSchema>;
@@ -51,4 +53,31 @@ export function saveConfig(newConfig: Config): void {
 
 export function getConfig(): Config {
   return config ?? loadConfig();
+}
+
+export function isFirstRun(): boolean {
+  return getConfig().firstRun;
+}
+
+export function markFirstRunComplete(): void {
+  const cfg = getConfig();
+  saveConfig({ ...cfg, firstRun: false });
+}
+
+export async function setLaunchAtLogin(enabled: boolean): Promise<void> {
+  const cfg = getConfig();
+  saveConfig({ ...cfg, launchAtLogin: enabled });
+  
+  // Use osascript to add/remove from Login Items
+  const appPath = process.execPath.includes('.app') 
+    ? process.execPath.replace(/\/Contents\/MacOS\/.*$/, '')
+    : null;
+    
+  if (appPath) {
+    const { exec } = await import('child_process');
+    const script = enabled
+      ? `tell application "System Events" to make login item at end with properties {path:"${appPath}", hidden:false}`
+      : `tell application "System Events" to delete login item "Kiro Deck"`;
+    exec(`osascript -e '${script}'`);
+  }
 }

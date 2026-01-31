@@ -5,7 +5,7 @@ import { renderInfoBar } from './infobar/renderer.js';
 import { sources } from './infobar/sources.js';
 import { EmulatorServer } from '../emulator/server.js';
 import { createTray } from './gui/tray.js';
-import { loadConfig, saveConfig, getConfig } from './config/config.js';
+import { loadConfig, saveConfig, getConfig, isFirstRun, markFirstRunComplete, setLaunchAtLogin } from './config/config.js';
 import sharp from 'sharp';
 import { GlobalFonts, createCanvas } from '@napi-rs/canvas';
 import { readFileSync, existsSync, readdirSync } from 'fs';
@@ -323,16 +323,33 @@ async function main() {
   const config = loadConfig();
   console.log(`[Main] Device type: ${config.deviceType}`);
   
+  // First run - set up launch at login and open config
+  if (isFirstRun()) {
+    console.log('[Main] First run - setting up...');
+    await setLaunchAtLogin(true);
+    markFirstRunComplete();
+    // Open config window after a short delay
+    setTimeout(() => {
+      const { openConfigUI } = require('./gui/tray.js');
+      openConfigUI();
+    }, 2000);
+  }
+  
   // Start menubar tray
-  tray = createTray({
-    onConfigure: () => console.log('[Tray] Config updated'),
-    onAbout: () => console.log('[Tray] About: Kiro Deck v0.1.0'),
-    onQuit: async () => {
-      console.log('[Tray] Quit requested');
-      await deckConnection.close();
-      process.exit(0);
-    },
-  });
+  try {
+    tray = createTray({
+      onConfigure: () => console.log('[Tray] Config updated'),
+      onAbout: () => console.log('[Tray] About: Kiro Deck v0.1.0'),
+      onQuit: async () => {
+        console.log('[Tray] Quit requested');
+        await deckConnection.close();
+        process.exit(0);
+      },
+    });
+    console.log('[Main] Tray created');
+  } catch (e) {
+    console.error('[Main] Tray creation failed:', e);
+  }
   
   // Start emulator server
   emulator = new EmulatorServer();

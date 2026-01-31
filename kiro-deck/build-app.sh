@@ -33,6 +33,13 @@ cp package.json "$RESOURCES/"
 cp tsconfig.json "$RESOURCES/"
 cp -r ../wtf.sauhsoj.kiro-icons.sdIconPack/icons "$RESOURCES/"
 
+# Fix systray2 binary name (it looks for tray_darwin, not tray_darwin_release)
+TRAY_BIN="$RESOURCES/node_modules/systray2/traybin"
+if [[ -f "$TRAY_BIN/tray_darwin_release" && ! -f "$TRAY_BIN/tray_darwin" ]]; then
+    cp "$TRAY_BIN/tray_darwin_release" "$TRAY_BIN/tray_darwin"
+    chmod +x "$TRAY_BIN/tray_darwin"
+fi
+
 # Create launcher that uses embedded bun
 cat > "$MACOS/kiro-deck" << 'LAUNCHER'
 #!/bin/bash
@@ -129,34 +136,46 @@ fi
 
 if [[ -n "$DEVELOPER_ID" ]]; then
     echo "Signing native binaries..."
-    # Sign all .node, .dylib, and binary files in node_modules
-    find "$RESOURCES/node_modules" -type f \( -name "*.node" -o -name "*.dylib" -o -name "tray_darwin_release" \) | while read -r binary; do
-        codesign --force --options runtime --sign "$DEVELOPER_ID" "$binary" 2>/dev/null || true
+    # Sign all .node, .dylib, and binary files in node_modules with entitlements
+    find "$RESOURCES/node_modules" -type f \( -name "*.node" -o -name "*.dylib" -o -name "tray_darwin_release" -o -name "tray_darwin" \) | while read -r binary; do
+        codesign --force --options runtime --entitlements "$SCRIPT_DIR/entitlements.plist" --sign "$DEVELOPER_ID" "$binary" 2>/dev/null || true
     done
     
+    # Sign bun with entitlements
+    codesign --force --options runtime --entitlements "$SCRIPT_DIR/entitlements.plist" --sign "$DEVELOPER_ID" "$MACOS/bun"
+    
     echo "Signing app with: $DEVELOPER_ID"
-    codesign --deep --force --options runtime --sign "$DEVELOPER_ID" "$APP_DIR"
+    codesign --deep --force --options runtime --entitlements "$SCRIPT_DIR/entitlements.plist" --sign "$DEVELOPER_ID" "$APP_DIR"
     echo "✅ Signed"
     
     # Notarization (requires APPLE_ID, APPLE_TEAM_ID, APPLE_APP_PASSWORD)
     if [[ -n "$APPLE_ID" && -n "$APPLE_TEAM_ID" && -n "$APPLE_APP_PASSWORD" ]]; then
-        echo "Creating ZIP for notarization..."
-        ZIP_PATH="$SCRIPT_DIR/dist/Kiro Deck.zip"
-        ditto -c -k --keepParent "$APP_DIR" "$ZIP_PATH"
+        echo "Creating DMG for notarization..."
+        DMG_PATH="$SCRIPT_DIR/dist/Kiro Deck.dmg"
+        DMG_TMP="$SCRIPT_DIR/dist/dmg_tmp"
+        
+        # Create DMG contents
+        rm -rf "$DMG_TMP"
+        mkdir -p "$DMG_TMP"
+        cp -r "$APP_DIR" "$DMG_TMP/"
+        ln -s /Applications "$DMG_TMP/Applications"
+        
+        # Create DMG
+        hdiutil create -volname "Kiro Deck" -srcfolder "$DMG_TMP" -ov -format UDZO "$DMG_PATH"
+        rm -rf "$DMG_TMP"
+        
+        # Sign DMG
+        codesign --force --sign "$DEVELOPER_ID" "$DMG_PATH"
         
         echo "Submitting for notarization..."
-        xcrun notarytool submit "$ZIP_PATH" \
+        xcrun notarytool submit "$DMG_PATH" \
             --apple-id "$APPLE_ID" \
             --team-id "$APPLE_TEAM_ID" \
             --password "$APPLE_APP_PASSWORD" \
             --wait
         
         echo "Stapling notarization ticket..."
-        xcrun stapler staple "$APP_DIR"
-        
-        # Recreate ZIP with stapled app
-        rm "$ZIP_PATH"
-        ditto -c -k --keepParent "$APP_DIR" "$ZIP_PATH"
+        xcrun stapler staple "$DMG_PATH"
         
         echo "✅ Notarized"
     else

@@ -52,13 +52,13 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: Kiro-Deck-macOS
-          path: kiro-deck/dist/Kiro Deck.zip
+          path: kiro-deck/dist/Kiro Deck.dmg
       
       - name: Create Release
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v1
         with:
-          files: kiro-deck/dist/Kiro Deck.zip
+          files: kiro-deck/dist/Kiro Deck.dmg
           body_path: kiro-deck/releases/${{ github.ref_name }}.md
           body: |
             ## Kiro Deck v0.1.0
