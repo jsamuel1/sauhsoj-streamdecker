@@ -98,8 +98,9 @@ export async function sendThinking(): Promise<void> {
 }
 
 export async function switchAgent(name: string): Promise<void> {
-  await focusKiro();
-  await Bun.sleep(50);
+  // Just activate iTerm, don't switch tabs
+  await focusApp('iTerm');
+  await Bun.sleep(100);
   await runAppleScript(`
     tell application "System Events"
       keystroke "/agent switch ${name}"
@@ -111,14 +112,36 @@ export async function switchAgent(name: string): Promise<void> {
 
 /** Show agent picker dialog and switch */
 export async function switchAgentPicker(): Promise<void> {
-  // Use choose from list dialog for agent selection
+  // Get agents from ~/.kiro/agents/*.json
+  const agentsDir = join(process.env.HOME || '', '.kiro', 'agents');
+  let agents: string[] = [];
+  
+  try {
+    const { readdirSync, readFileSync } = await import('fs');
+    const files = readdirSync(agentsDir).filter(f => f.endsWith('.json') && !f.endsWith('.bak'));
+    for (const file of files) {
+      try {
+        const data = JSON.parse(readFileSync(join(agentsDir, file), 'utf-8'));
+        if (data.name) agents.push(data.name);
+      } catch {}
+    }
+  } catch {}
+  
+  if (agents.length === 0) {
+    agents = getConfig().favoriteAgents;
+  }
+  
+  const agentList = agents.join('", "');
   const result = await runAppleScript(`
-    set agents to {"default", "jupyter", "git", "notes", "salesforce", "home", "blog"}
-    set chosen to choose from list agents with prompt "Switch to agent:" default items {"default"}
+    set agents to {"${agentList}"}
+    set chosen to choose from list agents with prompt "Switch to agent:" default items {"${agents[0]}"}
     if chosen is false then return ""
     return item 1 of chosen
   `);
+  
   if (result && result !== '') {
+    await focusKiro();
+    await Bun.sleep(50);
     await switchAgent(result);
   }
 }

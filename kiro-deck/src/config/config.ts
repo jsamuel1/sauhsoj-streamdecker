@@ -13,6 +13,7 @@ const ConfigSchema = z.object({
   favoriteFolders: z.array(z.string()).default([]),
   scripts: z.object({
     launchKiro: z.string().optional(),
+    switchAgent: z.string().optional(),
   }).default({}),
 });
 
