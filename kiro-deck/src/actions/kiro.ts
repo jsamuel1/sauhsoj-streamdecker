@@ -29,7 +29,7 @@ export async function focusKiro(): Promise<boolean> {
   return result === 'found';
 }
 
-/** Cycle through kiro-cli tabs (skips tabs that are processing) */
+/** Cycle through kiro-cli tabs (any kiro tab, regardless of processing state) */
 export async function cycleKiroTabs(): Promise<void> {
   await focusApp('iTerm');
   await runAppleScript(`
@@ -40,13 +40,13 @@ export async function cycleKiroTabs(): Promise<void> {
         repeat with i from 1 to n
           if tab i is current tab then set c to i
         end repeat
-        -- Find next idle kiro tab after current
+        -- Find next kiro tab after current
         repeat with i from 1 to n - 1
           set idx to ((c + i - 1) mod n) + 1
           set s to current session of tab idx
           set theTty to tty of s
           set hasKiro to (do shell script "ps -t " & theTty & " -o command= | grep -q kiro-cli && echo yes || echo no")
-          if hasKiro is "yes" and is processing of s is false then
+          if hasKiro is "yes" then
             select tab idx
             return
           end if
@@ -56,8 +56,7 @@ export async function cycleKiroTabs(): Promise<void> {
   `);
 }
 
-/** Find next idle kiro-cli tab (not processing) */
-/** Find next idle kiro-cli tab (not processing) */
+/** Find next idle kiro-cli tab (not processing, waiting for input) */
 export async function alertIdleKiro(): Promise<void> {
   await runAppleScript(`
     tell application "iTerm"
@@ -68,16 +67,14 @@ export async function alertIdleKiro(): Promise<void> {
         repeat with i from 1 to n
           if tab i is current tab then set c to i
         end repeat
-        repeat with i from 1 to n
+        repeat with i from 1 to n - 1
           set idx to ((c + i - 1) mod n) + 1
-          if idx ≠ c then
-            set s to current session of tab idx
-            set theTty to tty of s
-            set hasKiro to (do shell script "ps -t " & theTty & " -o command= | grep -q kiro-cli && echo yes || echo no")
-            if hasKiro is "yes" and is processing of s is false then
-              select tab idx
-              return
-            end if
+          set s to current session of tab idx
+          set theTty to tty of s
+          set hasKiro to (do shell script "ps -t " & theTty & " -o command= | grep -q kiro-cli && echo yes || echo no")
+          if hasKiro is "yes" and is processing of s is false then
+            select tab idx
+            return
           end if
         end repeat
       end tell
