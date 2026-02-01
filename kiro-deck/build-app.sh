@@ -4,7 +4,7 @@
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-APP_NAME="Kiro Deck"
+APP_NAME="Streamdecker"
 BUNDLE_ID="wtf.sauhsoj.kiro-deck"
 APP_DIR="$SCRIPT_DIR/dist/${APP_NAME}.app"
 CONTENTS="$APP_DIR/Contents"

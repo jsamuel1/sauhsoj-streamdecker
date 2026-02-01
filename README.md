@@ -1,6 +1,6 @@
 # sauhsoj-streamdecker
 
-Kiro Deck - Stream Deck controller for kiro-cli.
+Streamdecker - Stream Deck controller for kiro-cli.
 
 ## Architecture
 
@@ -22,7 +22,7 @@ sauhsoj-streamdecker/
 
 ## Modes
 
-Kiro Deck supports three modes of operation:
+Streamdecker supports three modes of operation:
 
 - **standalone** - Direct USB/HID control of Stream Deck (full features including Neo info bar)
 - **elgato** - Installs plugin to Elgato Stream Deck software
