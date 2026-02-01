@@ -71,11 +71,13 @@ jobs:
           # Sign the plugin installer
           codesign --force --sign "$DEVELOPER_ID" dist/wtf.sauhsoj.streamdecker.streamDeckPlugin
           
-          # Copy profile
+          # Copy profiles
           cp wtf.sauhsoj.streamdecker.sdPlugin/Kiro-Neo.streamDeckProfile dist/
+          cp wtf.sauhsoj.streamdecker.sdPlugin/Kiro-Mini.streamDeckProfile dist/
           
-          # Sign the profile
+          # Sign the profiles
           codesign --force --sign "$DEVELOPER_ID" dist/Kiro-Neo.streamDeckProfile
+          codesign --force --sign "$DEVELOPER_ID" dist/Kiro-Mini.streamDeckProfile
       
       - name: Upload app artifact
         uses: actions/upload-artifact@v4
@@ -89,11 +91,13 @@ jobs:
           name: Kiro-Deck-Plugin
           path: dist/wtf.sauhsoj.streamdecker.streamDeckPlugin
       
-      - name: Upload profile artifact
+      - name: Upload profile artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: Kiro-Deck-Profile
-          path: dist/Kiro-Neo.streamDeckProfile
+          name: Kiro-Deck-Profiles
+          path: |
+            dist/Kiro-Neo.streamDeckProfile
+            dist/Kiro-Mini.streamDeckProfile
       
       - name: Create Release
         if: startsWith(github.ref, 'refs/tags/')
@@ -103,6 +107,7 @@ jobs:
             kiro-deck/dist/Kiro Deck.dmg
             dist/wtf.sauhsoj.streamdecker.streamDeckPlugin
             dist/Kiro-Neo.streamDeckProfile
+            dist/Kiro-Mini.streamDeckProfile
           body_path: kiro-deck/releases/${{ github.ref_name }}.md
           body: |
             ## Kiro Deck v0.1.0
