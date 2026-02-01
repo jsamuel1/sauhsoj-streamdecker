@@ -56,17 +56,53 @@ jobs:
           chmod +x build-app.sh
           ./build-app.sh
       
-      - name: Upload artifact
+      - name: Build Elgato plugin package
+        env:
+          DEVELOPER_ID: ${{ secrets.DEVELOPER_ID }}
+        run: |
+          mkdir -p dist
+          
+          # Build the plugin bundle
+          npm run build
+          
+          # Create .streamDeckPlugin installer (zip the folder itself)
+          zip -r dist/wtf.sauhsoj.streamdecker.streamDeckPlugin wtf.sauhsoj.streamdecker.sdPlugin
+          
+          # Sign the plugin installer
+          codesign --force --sign "$DEVELOPER_ID" dist/wtf.sauhsoj.streamdecker.streamDeckPlugin
+          
+          # Copy profile
+          cp wtf.sauhsoj.streamdecker.sdPlugin/Kiro-Neo.streamDeckProfile dist/
+          
+          # Sign the profile
+          codesign --force --sign "$DEVELOPER_ID" dist/Kiro-Neo.streamDeckProfile
+      
+      - name: Upload app artifact
         uses: actions/upload-artifact@v4
         with:
           name: Kiro-Deck-macOS
           path: kiro-deck/dist/Kiro Deck.dmg
       
+      - name: Upload plugin artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Kiro-Deck-Plugin
+          path: dist/wtf.sauhsoj.streamdecker.streamDeckPlugin
+      
+      - name: Upload profile artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Kiro-Deck-Profile
+          path: dist/Kiro-Neo.streamDeckProfile
+      
       - name: Create Release
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v1
         with:
-          files: kiro-deck/dist/Kiro Deck.dmg
+          files: |
+            kiro-deck/dist/Kiro Deck.dmg
+            dist/wtf.sauhsoj.streamdecker.streamDeckPlugin
+            dist/Kiro-Neo.streamDeckProfile
           body_path: kiro-deck/releases/${{ github.ref_name }}.md
           body: |
             ## Kiro Deck v0.1.0
