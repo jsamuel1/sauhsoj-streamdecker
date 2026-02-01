@@ -6,7 +6,7 @@ Kiro Deck is a Stream Deck integration for kiro-cli that supports three operatio
 
 | Mode | Description | Device Control |
 |------|-------------|----------------|
-| `standalone` | Direct USB/HID control, full features including Neo info bar | kiro-deck app |
+| `standalone` | Direct USB/HID control, full features including Neo info bar | streamdecker app |
 | `btt` | Exports config to BetterTouchTool triggers | BTT |
 | `elgato` | Exports config to .sdPlugin profile | Elgato software |
 
@@ -35,7 +35,7 @@ sauhsoj-streamdecker/
 │   │   ├── btt.ts             # BTT trigger generator
 │   │   └── elgato.ts          # Elgato profile generator
 │   └── plugin.ts              # Elgato SDK plugin entry point
-├── kiro-deck/                 # Main application (Bun)
+├── streamdecker/                 # Main application (Bun)
 │   └── src/
 │       ├── main.ts            # Entry point (imports from shared/)
 │       ├── deck/              # Stream Deck HID control
@@ -49,7 +49,7 @@ sauhsoj-streamdecker/
 
 ## Unified Config Schema
 
-Location: `~/.config/kiro-deck/config.json`
+Location: `~/.config/streamdecker/config.json`
 
 ```typescript
 interface Config {
@@ -123,7 +123,7 @@ All actions are defined once and used by all modes:
 ### BTT Mode
 
 - Generates BTT triggers from config
-- Exports to `~/.config/kiro-deck/btt-triggers.json`
+- Exports to `~/.config/streamdecker/btt-triggers.json`
 - Can auto-import via BTT API
 - No info bar support
 
@@ -157,7 +157,7 @@ All actions are defined once and used by all modes:
    - Shared by all modes
 
 4. **Scattered config**:
-   - kiro-deck: `~/.config/kiro-deck/config.json`
+   - streamdecker: `~/.config/streamdecker/config.json`
    - sdPlugin: Property Inspector HTML
    - BTT: Python dict in source
    - Now: Single unified config
@@ -166,7 +166,7 @@ All actions are defined once and used by all modes:
 
 Icons are resolved in order:
 
-1. `~/.config/kiro-deck/icons/{name}.png` (user override)
+1. `~/.config/streamdecker/icons/{name}.png` (user override)
 2. `{app}/icons/{name}.png` (bundled with app)
 3. `wtf.sauhsoj.kiro-icons.sdIconPack/icons/{name}.png` (icon pack)
 
@@ -174,7 +174,7 @@ Icons are resolved in order:
 
 ```bash
 # Standalone mode (default)
-cd kiro-deck && bun run src/main.ts
+cd streamdecker && bun run src/main.ts
 
 # Export to BTT
 bun run src/exporters/btt.ts
@@ -183,8 +183,8 @@ bun run src/exporters/btt.ts
 bun run src/exporters/elgato.ts
 
 # Switch mode via CLI
-kiro-deck --mode btt --export
-kiro-deck --mode elgato --export
+streamdecker --mode btt --export
+streamdecker --mode elgato --export
 ```
 
 ## Future Considerations

@@ -28,8 +28,8 @@ jobs:
       - name: Install root dependencies
         run: npm ci
       
-      - name: Install kiro-deck dependencies
-        working-directory: kiro-deck
+      - name: Install streamdecker dependencies
+        working-directory: streamdecker
         run: bun install
       
       - name: Import signing certificate
@@ -46,7 +46,7 @@ jobs:
           rm certificate.p12
       
       - name: Build and sign
-        working-directory: kiro-deck
+        working-directory: streamdecker
         env:
           DEVELOPER_ID: ${{ secrets.DEVELOPER_ID }}
           APPLE_ID: ${{ secrets.APPLE_ID }}
@@ -83,7 +83,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: Streamdecker-macOS
-          path: kiro-deck/dist/Streamdecker.dmg
+          path: streamdecker/dist/Streamdecker.dmg
       
       - name: Upload plugin artifact
         uses: actions/upload-artifact@v4
@@ -104,11 +104,11 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           files: |
-            kiro-deck/dist/Streamdecker.dmg
+            streamdecker/dist/Streamdecker.dmg
             dist/wtf.sauhsoj.streamdecker.streamDeckPlugin
             dist/Kiro-Neo.streamDeckProfile
             dist/Kiro-Mini.streamDeckProfile
-          body_path: kiro-deck/releases/${{ github.ref_name }}.md
+          body_path: streamdecker/releases/${{ github.ref_name }}.md
           body: |
             ## Streamdecker v0.1.0
             

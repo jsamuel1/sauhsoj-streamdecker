@@ -6,7 +6,7 @@ Streamdecker - Stream Deck controller for kiro-cli.
 
 ```
 sauhsoj-streamdecker/
-├── kiro-deck/              # Main application (Bun)
+├── streamdecker/              # Main application (Bun)
 │   ├── src/main.ts         # Entry point
 │   ├── emulator/           # Web-based Stream Deck emulator
 │   └── build-app.sh        # Build signed .app bundle
@@ -42,7 +42,7 @@ Streamdecker supports three modes of operation:
 Download the latest release from GitHub Releases, or build from source:
 
 ```bash
-cd kiro-deck
+cd streamdecker
 bun install
 ./build-app.sh
 ```
@@ -51,10 +51,10 @@ bun install
 
 ```bash
 # Run standalone app
-cd kiro-deck && bun run dev
+cd streamdecker && bun run dev
 
 # Run emulator only
-cd kiro-deck && bun run emulator
+cd streamdecker && bun run emulator
 
 # Build Elgato plugin
 npm run build

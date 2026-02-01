@@ -124,7 +124,7 @@ description: Detailed functional requirements for Kiro Deck including hardware i
 
 ### 6.1 Settings Storage
 - JSON configuration files
-- Location: `~/.config/kiro-deck/`
+- Location: `~/.config/streamdecker/`
 - Schema validation
 
 ### 6.2 Configurable Items

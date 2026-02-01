@@ -60,13 +60,13 @@ A: When focused on a Kiro CLI tab, the page-left and page-right buttons send con
 ### Configuration
 
 **Q: Where are settings stored?**
-A: Configuration is stored in `~/.config/kiro-deck/` as JSON files.
+A: Configuration is stored in `~/.config/streamdecker/` as JSON files.
 
 **Q: Can I sync settings across machines?**
 A: The config directory can be symlinked to a synced folder (iCloud, Dropbox, etc.).
 
 **Q: How do I add favorite folders/agents?**
-A: Via the menubar Configure window, or by editing `~/.config/kiro-deck/favorites.json`.
+A: Via the menubar Configure window, or by editing `~/.config/streamdecker/favorites.json`.
 
 ### Technical
 

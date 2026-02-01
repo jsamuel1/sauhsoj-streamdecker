@@ -2,7 +2,7 @@
 
 ## Summary
 
-This document tracks the refactoring of kiro-deck from three separate implementations to a unified architecture with mode switching.
+This document tracks the refactoring of streamdecker from three separate implementations to a unified architecture with mode switching.
 
 ## Current State (Problems)
 
@@ -10,7 +10,7 @@ This document tracks the refactoring of kiro-deck from three separate implementa
 
 | Implementation | Location | Language | Actions |
 |----------------|----------|----------|---------|
-| kiro-deck | `kiro-deck/` | TypeScript/Bun | 8 |
+| streamdecker | `streamdecker/` | TypeScript/Bun | 8 |
 | sdPlugin | `wtf.sauhsoj.streamdecker.sdPlugin/` | TypeScript/Node | 11 |
 | BTT | `create-btt-buttons.py` | Python | 8 |
 
@@ -31,13 +31,13 @@ export const SCRIPTS_DIR = "/Users/sauhsoj/src/personal/sauhsoj-streamdecker/...
 ### 4. Duplicate AppleScript
 
 Same terminal automation exists in:
-- `kiro-deck/src/actions/kiro.ts` (embedded strings)
+- `streamdecker/src/actions/kiro.ts` (embedded strings)
 - `sdPlugin/scripts/*.applescript` (files)
 - `create-btt-buttons.py` (references scripts)
 
 ### 5. Inconsistent Config
 
-- kiro-deck: Zod schema in `~/.config/kiro-deck/config.json`
+- streamdecker: Zod schema in `~/.config/streamdecker/config.json`
 - sdPlugin: HTML Property Inspectors
 - BTT: Python dict in source code
 
@@ -45,7 +45,7 @@ Same terminal automation exists in:
 
 ### Single Config File
 
-`~/.config/kiro-deck/config.json` controls everything:
+`~/.config/streamdecker/config.json` controls everything:
 
 ```json
 {
@@ -64,10 +64,10 @@ Same terminal automation exists in:
 
 ```bash
 # Edit config to change mode
-kiro-deck config set mode btt
+streamdecker config set mode btt
 
 # Or via CLI flag
-kiro-deck --mode elgato --export
+streamdecker --mode elgato --export
 ```
 
 ### Shared Action Library
@@ -118,37 +118,37 @@ src/actions/
 ### For sdPlugin Users
 
 - Neo info bar no longer available (use standalone mode)
-- Config now in `~/.config/kiro-deck/config.json` instead of Property Inspector
+- Config now in `~/.config/streamdecker/config.json` instead of Property Inspector
 
 ### For BTT Users
 
 - `create-btt-buttons.py` deprecated
-- Use `kiro-deck --mode btt --export` instead
+- Use `streamdecker --mode btt --export` instead
 
 ## Migration Guide
 
 ### From sdPlugin to Standalone
 
-1. Install kiro-deck.app
+1. Install streamdecker.app
 2. Quit Stream Deck software
-3. Run kiro-deck (takes over USB)
+3. Run streamdecker (takes over USB)
 
 ### From sdPlugin to Elgato Mode
 
-1. Edit `~/.config/kiro-deck/config.json`:
+1. Edit `~/.config/streamdecker/config.json`:
    ```json
    { "mode": "elgato" }
    ```
-2. Run `kiro-deck --export`
+2. Run `streamdecker --export`
 3. Restart Stream Deck software
 
 ### From BTT Script to BTT Mode
 
-1. Edit `~/.config/kiro-deck/config.json`:
+1. Edit `~/.config/streamdecker/config.json`:
    ```json
    { "mode": "btt" }
    ```
-2. Run `kiro-deck --export`
+2. Run `streamdecker --export`
 3. Import generated triggers in BTT
 
 ## Timeline

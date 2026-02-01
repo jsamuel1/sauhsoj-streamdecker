@@ -70,7 +70,7 @@ Model: `amazon.nova-canvas-v1:0`
 | Component | Technology | Rationale |
 |-----------|------------|-----------|
 | **Config Format** | JSON with JSON Schema | Human-readable, validatable |
-| **Location** | ~/.config/kiro-deck/ | XDG-compliant |
+| **Location** | ~/.config/streamdecker/ | XDG-compliant |
 | **Schema Validation** | Zod | Runtime validation, TypeScript types |
 
 ## Auto-Update
@@ -139,7 +139,7 @@ Accent Red:        #ff8080
 ## Project Structure
 
 ```
-kiro-deck/
+streamdecker/
 ├── src/
 │   ├── main.ts              # Entry point
 │   ├── deck/
