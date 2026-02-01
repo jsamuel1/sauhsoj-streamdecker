@@ -174,9 +174,9 @@
     },
     {
       "UUID": "wtf.sauhsoj.streamdecker.send-thinking",
-      "Name": "Send Thinking",
+      "Name": "Trust",
       "Icon": "imgs/actions/send-thinking/icon",
-      "Tooltip": "Send 't' to kiro-cli to request thinking/reasoning",
+      "Tooltip": "Send 't' to kiro-cli to trust/approve tool execution",
       "Controllers": [
         "Keypad"
       ],
