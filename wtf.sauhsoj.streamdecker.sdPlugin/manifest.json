@@ -2,7 +2,7 @@
   "$schema": "https://schemas.elgato.com/streamdeck/plugins/manifest.json",
   "UUID": "wtf.sauhsoj.streamdecker",
   "Name": "Kiro CLI Tools",
-  "Version": "0.1.1",
+  "Version": "0.1.5",
   "Author": "sauhsoj",
   "Description": "Stream Deck integration for kiro-cli - launch, navigate tabs, switch agents, send responses",
   "Category": "Kiro",
@@ -174,7 +174,7 @@
     },
     {
       "UUID": "wtf.sauhsoj.streamdecker.send-thinking",
-      "Name": "Trust",
+      "Name": "Send Trust",
       "Icon": "imgs/actions/send-thinking/icon",
       "Tooltip": "Send 't' to kiro-cli to trust/approve tool execution",
       "Controllers": [

@@ -10,6 +10,18 @@ declare const APPS: {
     };
 };
 /**
+ * Check if an app is in login items (autostart)
+ */
+export declare function isInLoginItems(bundle: string): Promise<boolean>;
+/**
+ * Add app to login items (autostart)
+ */
+export declare function addToLoginItems(bundle: string): Promise<void>;
+/**
+ * Remove app from login items (autostart)
+ */
+export declare function removeFromLoginItems(name: string): Promise<void>;
+/**
  * Check if Elgato plugin is installed and up to date
  */
 export declare function getPluginStatus(): {
@@ -61,14 +73,18 @@ export declare function checkModeSwitch(newMode: Config["mode"]): Promise<{
         currentVersion: string | null;
         bundledVersion: string | null;
     } | null;
+    elgatoInLoginItems: boolean;
 }>;
 /**
  * Execute mode switch - start/stop apps as needed
  */
-export declare function executeModeSwitch(newMode: Config["mode"]): Promise<{
+export declare function executeModeSwitch(newMode: Config["mode"], options?: {
+    manageElgatoAutostart?: boolean;
+}): Promise<{
     started: string | null;
     stopped: string[];
     pluginInstalled: boolean;
     pluginVersion: string | null;
+    autostartChanged: boolean;
 }>;
 export {};
