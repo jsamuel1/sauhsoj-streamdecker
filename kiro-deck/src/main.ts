@@ -244,11 +244,13 @@ async function handlePageRight() {
   await updateInfoBar();
 }
 
-async function initButtons() {
+async function initButtons(sendToDevice: boolean = true) {
   for (let i = 0; i < 8; i++) {
     const buffer = await loadButtonIcon(i);
     if (buffer) {
-      await deckConnection.setButtonImage(i, buffer);
+      if (sendToDevice) {
+        await deckConnection.setButtonImage(i, buffer);
+      }
       
       // Also send to emulator as PNG base64
       const pngBuffer = await sharp(buffer, { raw: { width: 96, height: 96, channels: 3 } })
@@ -388,6 +390,8 @@ async function main() {
     setInterval(updateInfoBar, 30000);
   } else {
     console.log(`[Main] Mode is ${config.mode}, not connecting to Stream Deck`);
+    // Still render buttons for emulator preview
+    await initButtons(false);
   }
   
   process.on('SIGINT', async () => {
