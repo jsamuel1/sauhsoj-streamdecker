@@ -11,7 +11,6 @@ import { KiroStatusAction } from "./actions/kiro-status.js";
 import { SendYesAction } from "./actions/send-yes.js";
 import { SendNoAction } from "./actions/send-no.js";
 import { SendThinkingAction } from "./actions/send-thinking.js";
-import { registerNeoHandlers } from "./actions/infobar-calendar.js";
 import { setActiveTerminal } from "./kiro-utils.js";
 
 // Register all actions
@@ -38,8 +37,8 @@ streamDeck.system.onApplicationDidTerminate((ev) => {
   setActiveTerminal(null);
 });
 
-// Register Neo info bar handlers (uses patched SDK)
-registerNeoHandlers();
+// Note: Neo info bar is only available in standalone mode (kiro-deck app)
+// The Elgato plugin uses standard SDK without Neo-specific features
 
 // Connect to Stream Deck
 streamDeck.connect();

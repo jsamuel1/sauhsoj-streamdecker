@@ -12,8 +12,71 @@
       <h1>Kiro Deck</h1>
       <div class="header-controls">
         <select id="device-select"></select>
-        <button id="edit-btn" class="edit-btn">Edit</button>
+        <button id="settings-btn" class="edit-btn">⚙ Settings</button>
       </div>
+    </div>
+    
+    <!-- Mode Switch Dialog -->
+    <div id="mode-dialog" class="modal" style="display:none">
+      <div class="modal-content">
+        <div id="mode-dialog-content"></div>
+        <div class="modal-actions">
+          <button id="mode-cancel" class="cancel-btn">Cancel</button>
+          <button id="mode-confirm" class="save-btn">Switch Mode</button>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Settings Panel -->
+    <div id="settings-panel" class="settings-panel" style="display:none">
+      <div class="settings-header">
+        <h2>Settings</h2>
+        <button id="settings-close" class="close-btn">×</button>
+      </div>
+      <form id="settings-form">
+        <div class="setting-group">
+          <label>Mode</label>
+          <select name="mode">
+            <option value="standalone">Standalone (direct USB control)</option>
+            <option value="btt">BetterTouchTool (export triggers)</option>
+            <option value="elgato">Elgato Software (export profile)</option>
+          </select>
+        </div>
+        <div class="setting-group">
+          <label>Device Type</label>
+          <select name="deviceType">
+            <option value="neo">Stream Deck Neo</option>
+            <option value="mini">Stream Deck Mini</option>
+          </select>
+        </div>
+        <div class="setting-group">
+          <label>Terminal App</label>
+          <select name="terminalApp">
+            <option value="auto">Auto-detect</option>
+            <option value="iTerm">iTerm2</option>
+            <option value="Terminal">Terminal.app</option>
+            <option value="Warp">Warp</option>
+            <option value="WezTerm">WezTerm</option>
+          </select>
+        </div>
+        <div class="setting-group">
+          <label>Favorite Agents (comma-separated)</label>
+          <input type="text" name="favoriteAgents" placeholder="default, jupyter, git, notes">
+        </div>
+        <div class="setting-group">
+          <label>Accent Color</label>
+          <input type="color" name="accentColor" value="#9046ff">
+        </div>
+        <div class="setting-group">
+          <label class="checkbox-label">
+            <input type="checkbox" name="launchAtLogin"> Launch at login
+          </label>
+        </div>
+        <div class="setting-actions">
+          <button type="submit" class="save-btn">Save</button>
+          <button type="button" id="export-btn" class="export-btn">Export Config</button>
+        </div>
+      </form>
     </div>
     
     <!-- Neo Layout: 2x4 + page buttons + info bar -->

@@ -2,6 +2,9 @@ import { WebSocketServer, WebSocket } from 'ws';
 import { readFileSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
+import { getConfig, updateConfig, checkModeSwitch, executeModeSwitch, type Config } from '../../src/config/index.js';
+import { exportBttTriggers } from '../../src/exporters/btt.js';
+import { exportElgatoProfile } from '../../src/exporters/elgato.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const PORT = 3847;
@@ -16,6 +19,7 @@ export class EmulatorServer {
   onPageRight?: () => void;
   onClientConnect?: (send: (msg: object) => void) => void;
   onDeviceChange?: (device: 'neo' | 'mini') => void;
+  onConfigChange?: (config: Config) => void;
   private detectedDevice: 'neo' | 'mini' | null = null;
 
   constructor() {
@@ -52,11 +56,70 @@ export class EmulatorServer {
   }
 
   private startHttpServer() {
+    const self = this;
     Bun.serve({
       port: HTTP_PORT,
       hostname: '127.0.0.1',
-      fetch(req) {
+      async fetch(req) {
         const url = new URL(req.url);
+        
+        // API: Get config
+        if (url.pathname === '/api/config' && req.method === 'GET') {
+          return Response.json(getConfig());
+        }
+        
+        // API: Update config
+        if (url.pathname === '/api/config' && req.method === 'PUT') {
+          try {
+            const body = await req.json();
+            const updated = updateConfig(body);
+            self.onConfigChange?.(updated);
+            self.broadcast({ type: 'configChanged', config: updated });
+            return Response.json(updated);
+          } catch (e) {
+            return Response.json({ error: String(e) }, { status: 400 });
+          }
+        }
+        
+        // API: Check mode switch requirements
+        if (url.pathname === '/api/mode/check' && req.method === 'POST') {
+          try {
+            const { mode } = await req.json();
+            const check = await checkModeSwitch(mode);
+            return Response.json(check);
+          } catch (e) {
+            return Response.json({ error: String(e) }, { status: 400 });
+          }
+        }
+        
+        // API: Execute mode switch (start/stop apps, export config)
+        if (url.pathname === '/api/mode/switch' && req.method === 'POST') {
+          try {
+            const { mode } = await req.json();
+            
+            // Execute app start/stop
+            const result = await executeModeSwitch(mode);
+            
+            // Export config for the new mode
+            let exportPath: string | null = null;
+            if (mode === 'btt') {
+              exportPath = exportBttTriggers();
+            } else if (mode === 'elgato') {
+              exportPath = exportElgatoProfile();
+            }
+            
+            // Update config
+            const updated = updateConfig({ mode });
+            self.onConfigChange?.(updated);
+            self.broadcast({ type: 'configChanged', config: updated });
+            
+            return Response.json({ ...result, exportPath, config: updated });
+          } catch (e) {
+            return Response.json({ error: String(e) }, { status: 400 });
+          }
+        }
+        
+        // Static files
         let path = url.pathname === '/' ? '/index.html' : url.pathname;
         const filePath = join(__dirname, path);
         

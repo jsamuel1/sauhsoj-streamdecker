@@ -1,12 +1,12 @@
 import streamDeck from "@elgato/streamdeck";
 import { exec } from "child_process";
 import { promisify } from "util";
+import { getScriptsDir } from "./config/paths.js";
 
 const execAsync = promisify(exec);
 
-// Scripts directory
-export const SCRIPTS_DIR =
-  "/Users/sauhsoj/src/personal/sauhsoj-streamdecker/wtf.sauhsoj.streamdecker.sdPlugin/scripts";
+// Scripts directory - dynamically resolved
+export const SCRIPTS_DIR = getScriptsDir();
 
 // Track which terminal app is running kiro-cli
 let activeTerminal: string | null = null;
@@ -25,7 +25,8 @@ let iTermPermissionChecked = false;
 export async function checkiTermPermission(): Promise<boolean> {
   if (iTermPermissionChecked) return true;
   try {
-    const result = await execAsync(`osascript "${SCRIPTS_DIR}/check-iterm-permission.applescript"`);
+    const scriptsDir = getScriptsDir();
+    const result = await execAsync(`osascript "${scriptsDir}/check-iterm-permission.applescript"`);
     if (result.stdout.trim() === "ok") {
       iTermPermissionChecked = true;
       return true;
