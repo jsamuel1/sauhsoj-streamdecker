@@ -36,4 +36,6 @@ export {
   getAppsForMode,
   checkModeSwitch,
   executeModeSwitch,
+  getPluginStatus,
+  installPlugin,
 } from "./apps.js";

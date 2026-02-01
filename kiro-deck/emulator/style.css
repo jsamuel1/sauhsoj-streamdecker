@@ -337,3 +337,42 @@ h1 {
 }
 
 .cancel-btn:hover { border-color: var(--muted); }
+
+
+/* Elgato mode actions */
+.elgato-actions {
+  margin-top: 1rem;
+  padding-top: 1rem;
+}
+
+.elgato-actions h3 {
+  color: var(--purple);
+  font-size: 0.9rem;
+  margin-bottom: 0.5rem;
+}
+
+.elgato-actions hr {
+  border: none;
+  border-top: 1px solid var(--btn);
+  margin-bottom: 1rem;
+}
+
+#plugin-status {
+  font-size: 0.85rem;
+  margin-bottom: 0.75rem;
+}
+
+.action-btn {
+  padding: 0.5rem 1rem;
+  background: var(--btn);
+  color: var(--text);
+  border: 1px solid var(--purple);
+  border-radius: 0.4rem;
+  cursor: pointer;
+  margin-right: 0.5rem;
+  font-size: 0.85rem;
+}
+
+.action-btn:hover {
+  background: var(--purple);
+}

@@ -45,6 +45,13 @@ function populateSettingsForm() {
   form.favoriteAgents.value = (config.agents?.favorites || []).join(', ');
   form.accentColor.value = config.theme?.accentColor || '#9046ff';
   form.launchAtLogin.checked = config.launchAtLogin !== false;
+  
+  // Show/hide Elgato actions
+  const elgatoActions = document.getElementById('elgato-actions');
+  elgatoActions.style.display = config.mode === 'elgato' ? 'block' : 'none';
+  if (config.mode === 'elgato') {
+    updatePluginStatus();
+  }
 }
 
 function getFormConfig() {
@@ -320,3 +327,67 @@ document.getElementById('export-btn').onclick = () => {
 updateDeviceSelect();
 loadConfig();
 connect();
+
+// Elgato mode functions
+async function updatePluginStatus() {
+  try {
+    const res = await fetch('http://127.0.0.1:3848/api/plugin/status');
+    const status = await res.json();
+    const el = document.getElementById('plugin-status');
+    const btn = document.getElementById('update-plugin-btn');
+    
+    if (!status.installed) {
+      el.textContent = '⚠️ Plugin not installed';
+      btn.textContent = 'Install Plugin';
+      btn.style.display = 'inline-block';
+    } else if (status.needsUpdate) {
+      el.textContent = `⚠️ Plugin outdated: ${status.currentVersion} → ${status.bundledVersion}`;
+      btn.textContent = 'Update Plugin';
+      btn.style.display = 'inline-block';
+    } else {
+      el.textContent = `✓ Plugin v${status.currentVersion} installed`;
+      btn.style.display = 'none';
+    }
+  } catch (e) {
+    console.error('Failed to get plugin status:', e);
+  }
+}
+
+document.getElementById('update-plugin-btn').onclick = async () => {
+  try {
+    const res = await fetch('http://127.0.0.1:3848/api/plugin/install', { method: 'POST' });
+    const result = await res.json();
+    if (result.installed) {
+      alert(`Plugin v${result.version} installed successfully.`);
+      updatePluginStatus();
+    } else {
+      alert('Failed to install plugin.');
+    }
+  } catch (e) {
+    alert('Error installing plugin: ' + e);
+  }
+};
+
+document.getElementById('import-profile-btn').onclick = async () => {
+  const confirmed = confirm(
+    'Import Kiro Profile?\n\n' +
+    '⚠️ Note: Elgato Stream Deck always creates a NEW profile on import.\n\n' +
+    'If you already have a "Kiro" profile:\n' +
+    '1. Delete the old "Kiro" profile first\n' +
+    '2. Or rename "Kiro copy" after import\n\n' +
+    'Click OK to open the profile installer.'
+  );
+  if (!confirmed) return;
+  
+  try {
+    const res = await fetch('http://127.0.0.1:3848/api/profile/import', { method: 'POST' });
+    const result = await res.json();
+    if (result.success) {
+      alert('Profile installer opened. Click "Install" in the Stream Deck dialog to complete.');
+    } else {
+      alert('Failed to open profile: ' + (result.error || 'Unknown error'));
+    }
+  } catch (e) {
+    alert('Error importing profile: ' + e);
+  }
+};

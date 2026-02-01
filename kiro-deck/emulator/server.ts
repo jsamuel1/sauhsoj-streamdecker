@@ -2,7 +2,7 @@ import { WebSocketServer, WebSocket } from 'ws';
 import { readFileSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
-import { getConfig, updateConfig, checkModeSwitch, executeModeSwitch, type Config } from '../shared/config/index.js';
+import { getConfig, updateConfig, checkModeSwitch, executeModeSwitch, getPluginStatus, installPlugin, type Config } from '../shared/config/index.js';
 import { exportBttTriggers } from '../shared/exporters/btt.js';
 import { exportElgatoProfile } from '../shared/exporters/elgato.js';
 
@@ -122,6 +122,38 @@ export class EmulatorServer {
             self.broadcast({ type: 'configChanged', config: updated });
             
             return Response.json({ ...result, exportPath, config: updated });
+          } catch (e) {
+            return Response.json({ error: String(e) }, { status: 400 });
+          }
+        }
+        
+        // API: Get plugin status
+        if (url.pathname === '/api/plugin/status' && req.method === 'GET') {
+          return Response.json(getPluginStatus());
+        }
+        
+        // API: Install/update plugin
+        if (url.pathname === '/api/plugin/install' && req.method === 'POST') {
+          try {
+            const result = await installPlugin();
+            return Response.json(result);
+          } catch (e) {
+            return Response.json({ error: String(e) }, { status: 400 });
+          }
+        }
+        
+        // API: Import profile (opens the .streamDeckProfile file)
+        if (url.pathname === '/api/profile/import' && req.method === 'POST') {
+          try {
+            const profilePath = exportElgatoProfile();
+            if (profilePath) {
+              const { exec } = await import('child_process');
+              const { promisify } = await import('util');
+              const execAsync = promisify(exec);
+              await execAsync(`open "${profilePath}"`);
+              return Response.json({ success: true, path: profilePath });
+            }
+            return Response.json({ error: 'Profile not found' }, { status: 404 });
           } catch (e) {
             return Response.json({ error: String(e) }, { status: 400 });
           }
