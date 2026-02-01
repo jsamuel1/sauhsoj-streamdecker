@@ -3,7 +3,7 @@ import { homedir } from "os";
 import { existsSync } from "fs";
 
 // XDG-style config directory
-export const CONFIG_DIR = join(homedir(), ".config", "kiro-deck");
+export const CONFIG_DIR = join(homedir(), ".config", "streamdecker");
 export const CONFIG_FILE = join(CONFIG_DIR, "config.json");
 
 // Kiro agents directory
@@ -40,7 +40,7 @@ export function getScriptsDir(): string {
 
 /**
  * Resolve icons directory with fallback chain:
- * 1. User overrides: ~/.config/kiro-deck/icons/
+ * 1. User overrides: ~/.config/streamdecker/icons/
  * 2. Bundled icons: .app/Contents/Resources/icons/
  * 3. Icon pack: wtf.sauhsoj.kiro-icons.sdIconPack/icons/
  */
@@ -57,13 +57,13 @@ export function getIconsDir(): string {
     return join(dirname(execPath), "..", "Resources", "icons");
   }
 
-  // Development - icon pack
-  const iconPack = join(
+  // Development - shared icons
+  const sharedIcons = join(
     dirname(import.meta.url.replace("file://", "")),
-    "../../../wtf.sauhsoj.kiro-icons.sdIconPack/icons"
+    "../../../shared/icons"
   );
-  if (existsSync(iconPack)) {
-    return iconPack;
+  if (existsSync(sharedIcons)) {
+    return sharedIcons;
   }
 
   return join(CONFIG_DIR, "icons");
