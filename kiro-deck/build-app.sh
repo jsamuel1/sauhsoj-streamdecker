@@ -43,9 +43,9 @@ echo "Building Elgato plugin..."
 (cd .. && npm run build)
 cp -r ../wtf.sauhsoj.streamdecker.sdPlugin "$RESOURCES/"
 
-# Create .streamDeckPlugin installer package
+# Create .streamDeckPlugin installer package (must contain the .sdPlugin folder)
 PLUGIN_PKG="$RESOURCES/wtf.sauhsoj.streamdecker.streamDeckPlugin"
-(cd ../wtf.sauhsoj.streamdecker.sdPlugin && zip -r "$PLUGIN_PKG" . -x "*.DS_Store")
+(cd .. && zip -r "$PLUGIN_PKG" wtf.sauhsoj.streamdecker.sdPlugin -x "*.DS_Store")
 echo "Created plugin installer: $PLUGIN_PKG"
 
 # Fix systray2 binary name (it looks for tray_darwin, not tray_darwin_release)
