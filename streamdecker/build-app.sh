@@ -36,7 +36,7 @@ cp -r scripts "$RESOURCES/"
 cp -r node_modules "$RESOURCES/"
 cp package.json "$RESOURCES/"
 cp tsconfig.json "$RESOURCES/"
-cp -r ../wtf.sauhsoj.kiro-icons.sdIconPack/icons "$RESOURCES/"
+cp -r ../shared/icons "$RESOURCES/"
 
 # Build and copy Elgato plugin (for elgato mode installation)
 echo "Building Elgato plugin..."
@@ -106,7 +106,7 @@ if command -v iconutil &> /dev/null; then
     ICONSET="$RESOURCES/AppIcon.iconset"
     mkdir -p "$ICONSET"
     # Use the agent icon as app icon (has the ghost)
-    ICON_SRC="../wtf.sauhsoj.kiro-icons.sdIconPack/icons/kiro-agent-144.png"
+    ICON_SRC="../shared/icons/kiro-agent-144.png"
     if [[ -f "$ICON_SRC" ]]; then
         sips -z 16 16 "$ICON_SRC" --out "$ICONSET/icon_16x16.png" 2>/dev/null
         sips -z 32 32 "$ICON_SRC" --out "$ICONSET/icon_16x16@2x.png" 2>/dev/null
@@ -166,7 +166,7 @@ if [[ -n "$DEVELOPER_ID" ]]; then
     # Notarization (requires APPLE_ID, APPLE_TEAM_ID, APPLE_APP_PASSWORD)
     if [[ -n "$APPLE_ID" && -n "$APPLE_TEAM_ID" && -n "$APPLE_APP_PASSWORD" ]]; then
         echo "Creating DMG for notarization..."
-        DMG_PATH="$SCRIPT_DIR/dist/Kiro Deck.dmg"
+        DMG_PATH="$SCRIPT_DIR/dist/Streamdecker.dmg"
         DMG_TMP="$SCRIPT_DIR/dist/dmg_tmp"
         
         # Create DMG contents
@@ -176,7 +176,7 @@ if [[ -n "$DEVELOPER_ID" ]]; then
         ln -s /Applications "$DMG_TMP/Applications"
         
         # Create DMG
-        hdiutil create -volname "Kiro Deck" -srcfolder "$DMG_TMP" -ov -format UDZO "$DMG_PATH"
+        hdiutil create -volname "Streamdecker" -srcfolder "$DMG_TMP" -ov -format UDZO "$DMG_PATH"
         rm -rf "$DMG_TMP"
         
         # Sign DMG
