@@ -221,6 +221,13 @@ function showModeDialog(check, mode, onConfirm) {
     html += `<p>▶️ Will start: <strong>${check.needsStart}</strong></p>`;
   }
   
+  if (check.needsPluginInstall) {
+    const action = check.pluginStatus?.currentVersion ? 'Update' : 'Install';
+    const from = check.pluginStatus?.currentVersion ? ` (${check.pluginStatus.currentVersion})` : '';
+    const to = check.pluginStatus?.bundledVersion || '';
+    html += `<p>📦 Will ${action.toLowerCase()}: <strong>Kiro Deck plugin${from} → ${to}</strong></p>`;
+  }
+  
   if (mode === 'standalone') {
     html += `<p>Kiro Deck will take direct control of your Stream Deck via USB.</p>`;
   } else if (mode === 'btt') {
@@ -265,6 +272,7 @@ document.getElementById('settings-form').onsubmit = async (e) => {
         const result = await executeModeSwitch(newMode);
         if (result) {
           let msg = `Switched to ${newMode} mode.`;
+          if (result.pluginInstalled) msg += ` Installed plugin v${result.pluginVersion}.`;
           if (result.started) msg += ` Started ${result.started}.`;
           if (result.stopped?.length) msg += ` Stopped ${result.stopped.join(', ')}.`;
           if (result.exportPath) msg += ` Exported to ${result.exportPath}`;

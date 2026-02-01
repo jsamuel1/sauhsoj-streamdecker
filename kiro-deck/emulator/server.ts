@@ -2,9 +2,9 @@ import { WebSocketServer, WebSocket } from 'ws';
 import { readFileSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
-import { getConfig, updateConfig, checkModeSwitch, executeModeSwitch, type Config } from '../../src/config/index.js';
-import { exportBttTriggers } from '../../src/exporters/btt.js';
-import { exportElgatoProfile } from '../../src/exporters/elgato.js';
+import { getConfig, updateConfig, checkModeSwitch, executeModeSwitch, type Config } from '../../shared/config/index.js';
+import { exportBttTriggers } from '../../shared/exporters/btt.js';
+import { exportElgatoProfile } from '../../shared/exporters/elgato.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const PORT = 3847;

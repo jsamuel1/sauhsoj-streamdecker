@@ -1,5 +1,3 @@
-let __neo_connection = null;
-
 import require$$0$3 from 'events';
 import require$$1$1 from 'https';
 import require$$2 from 'http';
@@ -16,9 +14,10 @@ import { cwd } from 'node:process';
 import { randomUUID } from 'node:crypto';
 import { exec } from 'child_process';
 import { promisify } from 'util';
-import { readFile, writeFile, readdir } from 'fs/promises';
+import { join as join$1, dirname } from 'path';
 import { homedir } from 'os';
-import { join as join$1 } from 'path';
+import { existsSync as existsSync$1 } from 'fs';
+import { readFile, writeFile, readdir } from 'fs/promises';
 
 /**
  * Default language supported by all i18n providers.
@@ -6400,7 +6399,6 @@ class Connection extends EventEmitter {
     }
 }
 const connection = new Connection();
-__neo_connection = connection;
 
 /**
  * Provides information for events received from Stream Deck.
@@ -8036,9 +8034,40 @@ typeof SuppressedError === "function" ? SuppressedError : function (error, suppr
     return e.name = "SuppressedError", e.error = error, e.suppressed = suppressed, e;
 };
 
+// XDG-style config directory
+const CONFIG_DIR = join$1(homedir(), ".config", "kiro-deck");
+join$1(CONFIG_DIR, "config.json");
+// Kiro agents directory
+join$1(homedir(), ".kiro", "agents");
+/**
+ * Resolve scripts directory based on execution context:
+ * - Development: relative to source
+ * - Bundled app: inside .app/Contents/Resources
+ * - Installed package: node_modules location
+ */
+function getScriptsDir() {
+    // Check if running from .app bundle
+    const execPath = process.execPath;
+    if (execPath.includes(".app/Contents/MacOS")) {
+        return join$1(dirname(execPath), "..", "Resources", "scripts");
+    }
+    // Check for scripts relative to this file (development)
+    const devScripts = join$1(dirname(import.meta.url.replace("file://", "")), "../../scripts");
+    if (existsSync$1(devScripts)) {
+        return devScripts;
+    }
+    // Fallback to shared scripts in repo root
+    const repoScripts = join$1(dirname(import.meta.url.replace("file://", "")), "../../../scripts");
+    if (existsSync$1(repoScripts)) {
+        return repoScripts;
+    }
+    // Last resort: config directory
+    return join$1(CONFIG_DIR, "scripts");
+}
+
 const execAsync$a = promisify(exec);
-// Scripts directory
-const SCRIPTS_DIR = "/Users/sauhsoj/src/personal/sauhsoj-streamdecker/wtf.sauhsoj.streamdecker.sdPlugin/scripts";
+// Scripts directory - dynamically resolved
+const SCRIPTS_DIR = getScriptsDir();
 function setActiveTerminal(app) {
 }
 // Permission check cache
@@ -8047,7 +8076,8 @@ async function checkiTermPermission() {
     if (iTermPermissionChecked)
         return true;
     try {
-        const result = await execAsync$a(`osascript "${SCRIPTS_DIR}/check-iterm-permission.applescript"`);
+        const scriptsDir = getScriptsDir();
+        const result = await execAsync$a(`osascript "${scriptsDir}/check-iterm-permission.applescript"`);
         if (result.stdout.trim() === "ok") {
             iTermPermissionChecked = true;
             return true;
@@ -8074,7 +8104,7 @@ async function focusTerminal() {
     }
 }
 // Send a command followed by enter
-async function sendCommand$1(cmd) {
+async function sendCommand(cmd) {
     await execAsync$a(`osascript -e 'tell application "System Events" to keystroke "${cmd}"' -e 'tell application "System Events" to keystroke return'`);
 }
 
@@ -8326,7 +8356,7 @@ let SwitchAgentAction = (() => {
             const agentName = settings.agentName || "default";
             try {
                 await focusTerminal();
-                await sendCommand$1(`/agent switch ${agentName}`);
+                await sendCommand(`/agent switch ${agentName}`);
             }
             catch (err) {
                 streamDeck.logger.error(`Failed to switch agent: ${err}`);
@@ -8608,75 +8638,6 @@ let SendThinkingAction = (() => {
     return _classThis;
 })();
 
-promisify(exec);
-const NEO_ACTION_UUID = "wtf.sauhsoj.streamdecker.infobar-calendar";
-// Track Neo info bar contexts and their intervals
-const neoContexts = new Map();
-// Will be set after connection is available
-let sendCommand = null;
-async function updateDisplay(context) {
-    if (!sendCommand) {
-        streamDeck.logger.error("[Neo] sendCommand not available");
-        return;
-    }
-    try {
-        const now = new Date();
-        const hours = now.getHours();
-        const mins = now.getMinutes();
-        const h12 = hours % 12 || 12;
-        const ampm = hours >= 12 ? "PM" : "AM";
-        // Try setFeedbackLayout with a built-in layout
-        await sendCommand({
-            event: "setFeedbackLayout",
-            context,
-            payload: { layout: "InfobarLayouts/DigitalTime/digital_time_01.sdLayoutEx" },
-        });
-        // Then setFeedback with the time values
-        await sendCommand({
-            event: "setFeedback",
-            context,
-            payload: {
-                hour1: { value: h12.toString().padStart(2, "0") },
-                min1: { value: mins.toString().padStart(2, "0") },
-                am_pm: { value: ampm },
-            },
-        });
-        streamDeck.logger.info(`[Neo] Sent layout+feedback: ${h12}:${mins} ${ampm}`);
-    }
-    catch (err) {
-        streamDeck.logger.error(`[Neo] Update failed: ${err}`);
-    }
-}
-function registerNeoHandlers() {
-    streamDeck.logger.info("[Neo] Registering handlers...");
-    // Wait a tick for connection to be initialized
-    setTimeout(() => {
-        if (__neo_connection) {
-            sendCommand = (cmd) => __neo_connection.send(cmd);
-            __neo_connection.on("neoEvent", (data) => {
-                streamDeck.logger.info(`[Neo] Received: ${JSON.stringify(data)}`);
-                if (data.action !== NEO_ACTION_UUID)
-                    return;
-                if (data.event === "willAppear") {
-                    updateDisplay(data.context);
-                    const id = setInterval(() => updateDisplay(data.context), 30000);
-                    neoContexts.set(data.context, id);
-                }
-                if (data.event === "willDisappear") {
-                    const id = neoContexts.get(data.context);
-                    if (id)
-                        clearInterval(id);
-                    neoContexts.delete(data.context);
-                }
-            });
-            streamDeck.logger.info("[Neo] Handlers registered");
-        }
-        else {
-            streamDeck.logger.error("[Neo] __neo_connection not available");
-        }
-    }, 0);
-}
-
 // Register all actions
 streamDeck.actions.registerAction(new FocusKiroAction());
 streamDeck.actions.registerAction(new LaunchKiroCliAction());
@@ -8697,8 +8658,8 @@ streamDeck.system.onApplicationDidLaunch((ev) => {
 streamDeck.system.onApplicationDidTerminate((ev) => {
     streamDeck.logger.info(`Terminal terminated: ${ev.application}`);
 });
-// Register Neo info bar handlers (uses patched SDK)
-registerNeoHandlers();
+// Note: Neo info bar is only available in standalone mode (kiro-deck app)
+// The Elgato plugin uses standard SDK without Neo-specific features
 // Connect to Stream Deck
 streamDeck.connect();
 //# sourceMappingURL=plugin.js.map

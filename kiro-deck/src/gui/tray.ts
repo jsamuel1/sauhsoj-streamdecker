@@ -1,23 +1,16 @@
 import SysTray from 'systray2';
-import { join, dirname } from 'path';
-import { fileURLToPath } from 'url';
+import { join } from 'path';
 import { readFileSync, existsSync } from 'fs';
-import { spawn } from 'child_process';
+import { spawn, type ChildProcess } from 'child_process';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+import { getIconsDir } from '../../../shared/config/paths.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
-// Get icon path - works in both dev and .app bundle
-function getIconPath(): string {
-  const execPath = process.execPath;
-  if (execPath.includes('.app/Contents/MacOS')) {
-    return join(dirname(execPath), '..', 'Resources', 'icons', 'kiro-menubar@2x.png');
-  }
-  return join(__dirname, '../../wtf.sauhsoj.kiro-icons.sdIconPack/icons/kiro-menubar@2x.png');
-}
-
 // Load menubar icon as base64
 let iconBase64 = '';
-const iconPath = getIconPath();
+const iconPath = join(getIconsDir(), 'kiro-menubar@2x.png');
 if (existsSync(iconPath)) {
   iconBase64 = readFileSync(iconPath).toString('base64');
   console.log(`[Tray] Loaded icon from: ${iconPath}`);
@@ -31,7 +24,7 @@ export interface TrayCallbacks {
   onQuit?: () => void;
 }
 
-let configWindowProc: ReturnType<typeof spawn> | null = null;
+let configWindowProc: ChildProcess | null = null;
 
 export function openConfigUI(): void {
   if (configWindowProc) return;

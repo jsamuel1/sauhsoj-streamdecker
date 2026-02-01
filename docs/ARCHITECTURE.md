@@ -21,28 +21,30 @@ Kiro Deck is a Stream Deck integration for kiro-cli that supports three operatio
 
 ```
 sauhsoj-streamdecker/
-├── src/
+├── shared/                    # Shared modules (used by app and plugin)
 │   ├── config/
 │   │   ├── schema.ts          # Zod schema for unified config
 │   │   ├── loader.ts          # Config loading/saving
-│   │   └── paths.ts           # Portable path resolution
+│   │   ├── paths.ts           # Portable path resolution
+│   │   └── apps.ts            # App management (start/stop, plugin install)
 │   ├── actions/
 │   │   ├── index.ts           # Action registry
 │   │   ├── kiro.ts            # Kiro-cli actions (focus, cycle, etc.)
-│   │   ├── terminal.ts        # Terminal abstraction layer
-│   │   └── applescript.ts     # AppleScript execution
-│   └── exporters/
-│       ├── btt.ts             # BTT trigger generator
-│       └── elgato.ts          # sdPlugin profile generator
-├── kiro-deck/                 # Standalone app (Bun)
+│   │   └── terminal.ts        # Terminal abstraction (AppleScript)
+│   ├── exporters/
+│   │   ├── btt.ts             # BTT trigger generator
+│   │   └── elgato.ts          # Elgato profile generator
+│   └── plugin.ts              # Elgato SDK plugin entry point
+├── kiro-deck/                 # Main application (Bun)
 │   └── src/
-│       ├── main.ts            # Entry point
+│       ├── main.ts            # Entry point (imports from shared/)
 │       ├── deck/              # Stream Deck HID control
 │       └── infobar/           # Neo LCD rendering (standalone only)
-├── wtf.sauhsoj.streamdecker.sdPlugin/  # Elgato plugin
-│   ├── manifest.json
-│   └── bin/                   # Built plugin code
-└── scripts/                   # Shared shell scripts
+├── wtf.sauhsoj.streamdecker.sdPlugin/  # Elgato plugin (bundled component)
+│   ├── manifest.json          # Version synced from package.json
+│   └── bin/plugin.js          # Rollup bundle output
+└── scripts/                   # Build scripts
+    └── sync-version.mjs       # Sync version to manifest
 ```
 
 ## Unified Config Schema

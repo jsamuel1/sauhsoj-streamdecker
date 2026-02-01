@@ -1,49 +1,34 @@
 import { deckConnection } from './deck/connection.js';
-import { executeAction } from './actions/index.js';
-import { switchAgent, switchAgentWithShortcut } from './actions/kiro.js';
 import { renderInfoBar } from './infobar/renderer.js';
 import { sources } from './infobar/sources.js';
 import { EmulatorServer } from '../emulator/server.js';
 import { createTray } from './gui/tray.js';
-import { loadConfig, saveConfig, getConfig, isFirstRun, markFirstRunComplete, setLaunchAtLogin } from './config/config.js';
 import sharp from 'sharp';
 import { GlobalFonts, createCanvas } from '@napi-rs/canvas';
-import { readFileSync, existsSync, readdirSync } from 'fs';
-import { join, dirname } from 'path';
-import { fileURLToPath } from 'url';
+import { existsSync } from 'fs';
+import { join } from 'path';
 
-// Detect if running from .app bundle or dev
-function getResourcePath(subpath: string): string {
-  // Check for .app bundle structure
-  const execPath = process.execPath;
-  if (execPath.includes('.app/Contents/MacOS')) {
-    const resourcesDir = join(dirname(execPath), '..', 'Resources');
-    return join(resourcesDir, subpath);
-  }
-  // Dev mode - relative to source
-  const __dirname = dirname(fileURLToPath(import.meta.url));
-  const devPaths: Record<string, string> = {
-    'icons': join(__dirname, '../../wtf.sauhsoj.kiro-icons.sdIconPack/icons'),
-    'fonts': join(__dirname, '../fonts'),
-    'scripts': join(__dirname, '../scripts'),
-    'emulator': join(__dirname, '../emulator'),
-  };
-  const base = subpath.split('/')[0];
-  if (devPaths[base]) {
-    return join(devPaths[base], ...subpath.split('/').slice(1));
-  }
-  return join(__dirname, '..', subpath);
-}
+// Import from shared modules
+import { getIconsDir, getFontsDir } from '../../shared/config/paths.js';
+import { getConfig, saveConfig, isFirstRun, markFirstRunComplete } from '../../shared/config/loader.js';
+import {
+  focusKiro,
+  cycleKiroTabs,
+  alertIdleKiro,
+  sendYes,
+  sendNo,
+  sendTrust,
+  switchAgent,
+  getAgentList,
+  launchKiro,
+} from '../../shared/actions/kiro.js';
+import { focusApp, sendKeystroke } from '../../shared/actions/terminal.js';
 
-const ICONS_DIR = getResourcePath('icons');
-const FONT_PATH = getResourcePath('fonts/Nunito-ExtraBold.ttf');
-const RECENT_AGENTS_FILE = join(process.env.HOME || '', '.kiro', 'kiro-picker-recent-agents');
+const ICONS_DIR = getIconsDir();
+const FONT_PATH = join(getFontsDir(), 'Nunito-ExtraBold.ttf');
 
 // Register custom font
 GlobalFonts.registerFromPath(FONT_PATH, 'Nunito');
-
-// Export for use in actions
-export { getResourcePath };
 
 // Page state
 type Page = 'main' | 'agents';
@@ -85,33 +70,27 @@ let tray: ReturnType<typeof createTray> | null = null;
 const buttonImageCache: Map<number, string> = new Map();
 let infoBarCache: string | null = null;
 
+// Action registry for button presses
+const ActionRegistry: Record<string, () => Promise<void>> = {
+  'kiro.focus': async () => { await focusKiro(); },
+  'kiro.cycle': cycleKiroTabs,
+  'kiro.alert': alertIdleKiro,
+  'kiro.launch': launchKiro,
+  'kiro.yes': sendYes,
+  'kiro.no': sendNo,
+  'kiro.thinking': sendTrust,
+  'app.iterm': () => focusApp('iTerm'),
+};
+
 function getRecentAgents(maxCount: number): string[] {
-  const agentsDir = join(process.env.HOME || '', '.kiro', 'agents');
-  const allAgents: string[] = [];
+  const agents = getAgentList();
+  const config = getConfig();
+  const recentOrder = config.agents.recent || [];
   
-  // Read all agent names from JSON files
-  try {
-    const files = readdirSync(agentsDir).filter(f => f.endsWith('.json') && !f.endsWith('.bak'));
-    for (const file of files) {
-      try {
-        const data = JSON.parse(readFileSync(join(agentsDir, file), 'utf-8'));
-        if (data.name) allAgents.push(data.name);
-      } catch {}
-    }
-  } catch {}
-  
-  // Get recent agents order
-  let recentOrder: string[] = [];
-  if (existsSync(RECENT_AGENTS_FILE)) {
-    try {
-      recentOrder = readFileSync(RECENT_AGENTS_FILE, 'utf-8').trim().split('\n').filter(Boolean);
-    } catch {}
-  }
-  
-  // Sort: recent first, then alphabetically
+  // Sort: recent first, then rest
   const recentSet = new Set(recentOrder);
-  const recent = recentOrder.filter(a => allAgents.includes(a));
-  const rest = allAgents.filter(a => !recentSet.has(a)).sort();
+  const recent = recentOrder.filter(a => agents.includes(a));
+  const rest = agents.filter(a => !recentSet.has(a)).sort();
   
   return [...recent, ...rest].slice(0, maxCount);
 }
@@ -210,15 +189,15 @@ async function handleButtonDown(index: number) {
     if (agentName) {
       console.log(`[Main] Switching to agent: ${agentName}`);
       await showMainPage();
-      
-      // Show info bar message
       await showInfoBarMessage(`→ Agent [${agentName}]`);
       
-      // Check for keyboard shortcut
+      // Check for keyboard shortcut in config
       const config = getConfig();
-      const shortcut = config.agentShortcuts[agentName];
+      const shortcut = config.agents.shortcuts?.[agentName];
       if (shortcut) {
-        await switchAgentWithShortcut(shortcut);
+        await focusApp('iTerm');
+        await new Promise(r => setTimeout(r, 100));
+        await sendKeystroke(shortcut);
       } else {
         await switchAgent(agentName);
       }
@@ -229,14 +208,14 @@ async function handleButtonDown(index: number) {
   // Main page
   const actionId = buttonActions[index];
   if (actionId === 'kiro.agent') {
-    // Show agent picker page
     await showAgentPage();
     return;
   }
   
-  if (actionId) {
+  const action = ActionRegistry[actionId];
+  if (action) {
     try {
-      await executeAction(actionId);
+      await action();
     } catch (e) {
       console.error(`[Main] Action failed:`, e);
     }
@@ -285,7 +264,7 @@ async function initButtons() {
 async function showAgentPage() {
   currentPage = 'agents';
   const config = getConfig();
-  const maxButtons = config.deviceType === 'mini' ? 6 : 8;
+  const maxButtons = config.device.type === 'mini' ? 6 : 8;
   agentList = getRecentAgents(maxButtons);
   
   for (let i = 0; i < maxButtons; i++) {
@@ -320,15 +299,13 @@ async function main() {
   console.log('🎮 Kiro Deck starting...');
   
   // Load config
-  const config = loadConfig();
-  console.log(`[Main] Device type: ${config.deviceType}`);
+  const config = getConfig();
+  console.log(`[Main] Device type: ${config.device.type}`);
   
-  // First run - set up launch at login and open config
+  // First run - open config
   if (isFirstRun()) {
     console.log('[Main] First run - setting up...');
-    await setLaunchAtLogin(true);
     markFirstRunComplete();
-    // Open config window after a short delay
     setTimeout(() => {
       const { openConfigUI } = require('./gui/tray.js');
       openConfigUI();
@@ -339,7 +316,7 @@ async function main() {
   try {
     tray = createTray({
       onConfigure: () => console.log('[Tray] Config updated'),
-      onAbout: () => console.log('[Tray] About: Kiro Deck v0.1.0'),
+      onAbout: () => console.log('[Tray] About: Kiro Deck v0.1.1'),
       onQuit: async () => {
         console.log('[Tray] Quit requested');
         await deckConnection.close();
@@ -354,18 +331,17 @@ async function main() {
   // Start emulator server
   emulator = new EmulatorServer();
   emulator.onButtonDown = handleButtonDown;
-  emulator.onButtonUp = () => {}; // No action on release
+  emulator.onButtonUp = () => {};
   emulator.onPageLeft = handlePageLeft;
   emulator.onPageRight = handlePageRight;
   emulator.onClientConnect = (send) => {
-    // Send cached images to new client
     buttonImageCache.forEach((b64, i) => send({ type: 'buttonImage', index: i, data: b64 }));
     if (infoBarCache) send({ type: 'infoBar', data: infoBarCache });
   };
   emulator.onDeviceChange = (device) => {
-    const config = getConfig();
-    if (config.deviceType !== device) {
-      saveConfig({ ...config, deviceType: device });
+    const cfg = getConfig();
+    if (cfg.device.type !== device) {
+      saveConfig({ device: { ...cfg.device, type: device } });
       console.log(`[Main] Device type changed to: ${device}`);
     }
   };
@@ -374,17 +350,14 @@ async function main() {
   deckConnection.on('connected', async (info) => {
     console.log(`[Main] Stream Deck connected: ${info.model}`);
     
-    // Auto-detect and save device type
     const detectedType = info.model?.toLowerCase().includes('mini') ? 'mini' : 'neo';
-    const config = getConfig();
-    if (config.deviceType !== detectedType) {
-      saveConfig({ ...config, deviceType: detectedType });
+    const cfg = getConfig();
+    if (cfg.device.type !== detectedType) {
+      saveConfig({ device: { ...cfg.device, type: detectedType } });
       console.log(`[Main] Device type updated to: ${detectedType}`);
     }
     
-    // Notify emulator of detected device
     emulator?.setDetectedDevice(detectedType);
-    
     await initButtons();
     await updateInfoBar();
   });
@@ -399,10 +372,8 @@ async function main() {
   
   await deckConnection.connect();
   
-  // Update info bar periodically
   setInterval(updateInfoBar, 30000);
   
-  // Handle shutdown
   process.on('SIGINT', async () => {
     console.log('\n👋 Shutting down...');
     await deckConnection.close();

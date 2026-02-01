@@ -14,6 +14,10 @@ BUN_PATH="$(command -v bun)"
 
 echo "Building ${APP_NAME}.app..."
 
+# Get version from package.json
+VERSION=$(node -p "require('./package.json').version")
+echo "Version: $VERSION"
+
 # Clean previous build
 rm -rf "$APP_DIR"
 
@@ -32,6 +36,22 @@ cp -r node_modules "$RESOURCES/"
 cp package.json "$RESOURCES/"
 cp tsconfig.json "$RESOURCES/"
 cp -r ../wtf.sauhsoj.kiro-icons.sdIconPack/icons "$RESOURCES/"
+
+# Build and copy Elgato plugin (for elgato mode installation)
+echo "Building Elgato plugin..."
+(cd .. && npm run build)
+cp -r ../wtf.sauhsoj.streamdecker.sdPlugin "$RESOURCES/"
+
+# Create .streamDeckPlugin installer package
+PLUGIN_PKG="$RESOURCES/wtf.sauhsoj.streamdecker.streamDeckPlugin"
+(cd ../wtf.sauhsoj.streamdecker.sdPlugin && zip -r "$PLUGIN_PKG" . -x "*.DS_Store")
+echo "Created plugin installer: $PLUGIN_PKG"
+
+# Copy shared modules (actions, config, exporters)
+mkdir -p "$RESOURCES/shared"
+cp -r ../shared/actions "$RESOURCES/shared/"
+cp -r ../shared/config "$RESOURCES/shared/"
+cp -r ../shared/exporters "$RESOURCES/shared/"
 
 # Fix systray2 binary name (it looks for tray_darwin, not tray_darwin_release)
 TRAY_BIN="$RESOURCES/node_modules/systray2/traybin"
@@ -63,9 +83,9 @@ cat > "$CONTENTS/Info.plist" << EOF
     <key>CFBundleIdentifier</key>
     <string>${BUNDLE_ID}</string>
     <key>CFBundleVersion</key>
-    <string>1.0.0</string>
+    <string>${VERSION}</string>
     <key>CFBundleShortVersionString</key>
-    <string>1.0.0</string>
+    <string>${VERSION}</string>
     <key>CFBundleExecutable</key>
     <string>kiro-deck</string>
     <key>CFBundleIconFile</key>

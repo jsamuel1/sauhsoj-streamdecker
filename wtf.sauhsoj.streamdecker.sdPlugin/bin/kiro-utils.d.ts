@@ -1,4 +1,4 @@
-export declare const SCRIPTS_DIR = "/Users/sauhsoj/src/personal/sauhsoj-streamdecker/wtf.sauhsoj.streamdecker.sdPlugin/scripts";
+export declare const SCRIPTS_DIR: string;
 export declare function setActiveTerminal(app: string | null): void;
 export declare function getActiveTerminal(): string | null;
 export declare function checkiTermPermission(): Promise<boolean>;

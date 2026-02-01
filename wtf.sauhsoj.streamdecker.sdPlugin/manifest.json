@@ -2,7 +2,7 @@
   "$schema": "https://schemas.elgato.com/streamdeck/plugins/manifest.json",
   "UUID": "wtf.sauhsoj.streamdecker",
   "Name": "Kiro CLI Tools",
-  "Version": "1.1.0",
+  "Version": "0.1.1",
   "Author": "sauhsoj",
   "Description": "Stream Deck integration for kiro-cli - launch, navigate tabs, switch agents, send responses",
   "Category": "Kiro",
@@ -39,7 +39,9 @@
       "Name": "Launch kiro-cli",
       "Icon": "imgs/actions/focus-kiro/icon",
       "Tooltip": "Open new iTerm tab with kiro-cli chat",
-      "Controllers": ["Keypad"],
+      "Controllers": [
+        "Keypad"
+      ],
       "States": [
         {
           "Image": "imgs/actions/focus-kiro/key",
@@ -53,7 +55,9 @@
       "Icon": "imgs/actions/focus-kiro/icon",
       "Tooltip": "Open kiro-cli in a specific folder",
       "PropertyInspectorPath": "ui/launch-folder.html",
-      "Controllers": ["Keypad"],
+      "Controllers": [
+        "Keypad"
+      ],
       "States": [
         {
           "Image": "imgs/actions/focus-kiro/key",
@@ -66,7 +70,9 @@
       "Name": "Focus Kiro",
       "Icon": "imgs/actions/focus-kiro/icon",
       "Tooltip": "Bring kiro-cli terminal window to foreground",
-      "Controllers": ["Keypad"],
+      "Controllers": [
+        "Keypad"
+      ],
       "States": [
         {
           "Image": "imgs/actions/focus-kiro/key",
@@ -79,7 +85,9 @@
       "Name": "Cycle Kiro Tabs",
       "Icon": "imgs/actions/switch-agent/icon",
       "Tooltip": "Cycle through kiro-cli tabs in iTerm",
-      "Controllers": ["Keypad"],
+      "Controllers": [
+        "Keypad"
+      ],
       "States": [
         {
           "Image": "imgs/actions/switch-agent/key",
@@ -92,7 +100,9 @@
       "Name": "Next Alert Tab",
       "Icon": "imgs/actions/send-thinking/icon",
       "Tooltip": "Jump to next kiro-cli tab waiting for input",
-      "Controllers": ["Keypad"],
+      "Controllers": [
+        "Keypad"
+      ],
       "States": [
         {
           "Image": "imgs/actions/send-thinking/key",
@@ -106,7 +116,9 @@
       "Icon": "imgs/actions/switch-agent/icon",
       "Tooltip": "Switch kiro-cli to a different agent",
       "PropertyInspectorPath": "ui/switch-agent.html",
-      "Controllers": ["Keypad"],
+      "Controllers": [
+        "Keypad"
+      ],
       "States": [
         {
           "Image": "imgs/actions/switch-agent/key",
@@ -120,7 +132,9 @@
       "Icon": "imgs/actions/switch-agent/icon",
       "Tooltip": "Switch to a specific agent from ~/.kiro/agents/",
       "PropertyInspectorPath": "ui/agent-personality.html",
-      "Controllers": ["Keypad"],
+      "Controllers": [
+        "Keypad"
+      ],
       "States": [
         {
           "Image": "imgs/actions/switch-agent/key",
@@ -133,7 +147,9 @@
       "Name": "Send Yes",
       "Icon": "imgs/actions/send-yes/icon",
       "Tooltip": "Send 'y' to kiro-cli for confirmation prompts",
-      "Controllers": ["Keypad"],
+      "Controllers": [
+        "Keypad"
+      ],
       "States": [
         {
           "Image": "imgs/actions/send-yes/key",
@@ -146,7 +162,9 @@
       "Name": "Send No",
       "Icon": "imgs/actions/send-no/icon",
       "Tooltip": "Send 'n' to kiro-cli for confirmation prompts",
-      "Controllers": ["Keypad"],
+      "Controllers": [
+        "Keypad"
+      ],
       "States": [
         {
           "Image": "imgs/actions/send-no/key",
@@ -159,7 +177,9 @@
       "Name": "Send Thinking",
       "Icon": "imgs/actions/send-thinking/icon",
       "Tooltip": "Send 't' to kiro-cli to request thinking/reasoning",
-      "Controllers": ["Keypad"],
+      "Controllers": [
+        "Keypad"
+      ],
       "States": [
         {
           "Image": "imgs/actions/send-thinking/key",
@@ -172,7 +192,9 @@
       "Name": "Kiro Status",
       "Icon": "imgs/actions/focus-kiro/icon",
       "Tooltip": "Shows context % and agent of current kiro-cli session",
-      "Controllers": ["Keypad"],
+      "Controllers": [
+        "Keypad"
+      ],
       "States": [
         {
           "Image": "imgs/actions/focus-kiro/key",
@@ -185,7 +207,9 @@
       "Name": "Calendar / Time",
       "Icon": "imgs/actions/focus-kiro/icon",
       "Tooltip": "Shows next calendar event (within 2h) or current time",
-      "Controllers": ["Neo"],
+      "Controllers": [
+        "Neo"
+      ],
       "States": [
         {
           "TitleAlignment": "middle"

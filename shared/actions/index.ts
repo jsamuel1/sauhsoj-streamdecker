@@ -28,8 +28,8 @@ export async function executeAction(actionId: ActionId): Promise<void> {
   const { focusKiro, cycleKiroTabs, alertIdleKiro, sendYes, sendNo, sendTrust, launchKiro } =
     await import("./kiro.js");
 
-  const actionMap: Record<string, () => Promise<void>> = {
-    "kiro.focus": focusKiro as () => Promise<void>,
+  const actionMap: Record<string, () => Promise<unknown>> = {
+    "kiro.focus": focusKiro,
     "kiro.cycle": cycleKiroTabs,
     "kiro.alert": alertIdleKiro,
     "kiro.launch": launchKiro,
