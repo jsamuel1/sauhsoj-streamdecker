@@ -8,7 +8,7 @@
     "esModuleInterop": true,
     "skipLibCheck": true,
     "outDir": "./wtf.sauhsoj.streamdecker.sdPlugin/bin",
-    "rootDir": "./shared"
+    "rootDir": "./kiro-deck/shared"
   },
-  "include": ["shared/**/*"]
+  "include": ["kiro-deck/shared/**/*"]
 }

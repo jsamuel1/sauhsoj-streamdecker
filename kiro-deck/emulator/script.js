@@ -190,12 +190,12 @@ async function checkModeSwitch(mode) {
   }
 }
 
-async function executeModeSwitch(mode) {
+async function executeModeSwitch(mode, manageElgatoAutostart = false) {
   try {
     const res = await fetch('http://127.0.0.1:3848/api/mode/switch', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ mode })
+      body: JSON.stringify({ mode, manageElgatoAutostart })
     });
     return await res.json();
   } catch (e) {
@@ -204,7 +204,7 @@ async function executeModeSwitch(mode) {
   }
 }
 
-function showModeDialog(check, mode, onConfirm) {
+function showModeDialog(check, mode, currentMode, onConfirm) {
   const dialog = document.getElementById('mode-dialog');
   const content = document.getElementById('mode-dialog-content');
   
@@ -228,6 +228,16 @@ function showModeDialog(check, mode, onConfirm) {
     html += `<p>📦 Will ${action.toLowerCase()}: <strong>Kiro Deck plugin${from} → ${to}</strong></p>`;
   }
   
+  // Show autostart checkbox for elgato <-> standalone switches
+  let showAutostartOption = false;
+  if (mode === 'standalone' && currentMode === 'elgato' && check.elgatoInLoginItems) {
+    html += `<p><label><input type="checkbox" id="manage-autostart" checked> Remove Elgato Stream Deck from login items</label></p>`;
+    showAutostartOption = true;
+  } else if (mode === 'elgato' && currentMode === 'standalone' && !check.elgatoInLoginItems) {
+    html += `<p><label><input type="checkbox" id="manage-autostart" checked> Add Elgato Stream Deck to login items</label></p>`;
+    showAutostartOption = true;
+  }
+  
   if (mode === 'standalone') {
     html += `<p>Kiro Deck will take direct control of your Stream Deck via USB.</p>`;
   } else if (mode === 'btt') {
@@ -240,8 +250,9 @@ function showModeDialog(check, mode, onConfirm) {
   dialog.style.display = 'block';
   
   document.getElementById('mode-confirm').onclick = async () => {
+    const manageAutostart = showAutostartOption ? document.getElementById('manage-autostart')?.checked : false;
     dialog.style.display = 'none';
-    await onConfirm();
+    await onConfirm(manageAutostart);
   };
   document.getElementById('mode-cancel').onclick = () => {
     dialog.style.display = 'none';
@@ -268,13 +279,14 @@ document.getElementById('settings-form').onsubmit = async (e) => {
   if (newMode !== oldMode) {
     const check = await checkModeSwitch(newMode);
     if (check) {
-      showModeDialog(check, newMode, async () => {
-        const result = await executeModeSwitch(newMode);
+      showModeDialog(check, newMode, oldMode, async (manageAutostart) => {
+        const result = await executeModeSwitch(newMode, manageAutostart);
         if (result) {
           let msg = `Switched to ${newMode} mode.`;
           if (result.pluginInstalled) msg += ` Installed plugin v${result.pluginVersion}.`;
           if (result.started) msg += ` Started ${result.started}.`;
           if (result.stopped?.length) msg += ` Stopped ${result.stopped.join(', ')}.`;
+          if (result.autostartChanged) msg += ` Updated login items.`;
           if (result.exportPath) msg += ` Exported to ${result.exportPath}`;
           alert(msg);
         }

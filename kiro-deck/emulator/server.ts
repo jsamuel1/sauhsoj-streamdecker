@@ -2,9 +2,9 @@ import { WebSocketServer, WebSocket } from 'ws';
 import { readFileSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
-import { getConfig, updateConfig, checkModeSwitch, executeModeSwitch, type Config } from '../../shared/config/index.js';
-import { exportBttTriggers } from '../../shared/exporters/btt.js';
-import { exportElgatoProfile } from '../../shared/exporters/elgato.js';
+import { getConfig, updateConfig, checkModeSwitch, executeModeSwitch, type Config } from '../shared/config/index.js';
+import { exportBttTriggers } from '../shared/exporters/btt.js';
+import { exportElgatoProfile } from '../shared/exporters/elgato.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const PORT = 3847;
@@ -20,6 +20,7 @@ export class EmulatorServer {
   onClientConnect?: (send: (msg: object) => void) => void;
   onDeviceChange?: (device: 'neo' | 'mini') => void;
   onConfigChange?: (config: Config) => void;
+  onModeSwitch?: (newMode: string, oldMode: string) => Promise<void>;
   private detectedDevice: 'neo' | 'mini' | null = null;
 
   constructor() {
@@ -95,10 +96,17 @@ export class EmulatorServer {
         // API: Execute mode switch (start/stop apps, export config)
         if (url.pathname === '/api/mode/switch' && req.method === 'POST') {
           try {
-            const { mode } = await req.json();
+            const { mode, manageElgatoAutostart } = await req.json();
+            const currentConfig = getConfig();
+            const oldMode = currentConfig.mode;
+            
+            // Let app disconnect from device if switching away from standalone
+            if (self.onModeSwitch) {
+              await self.onModeSwitch(mode, oldMode);
+            }
             
             // Execute app start/stop
-            const result = await executeModeSwitch(mode);
+            const result = await executeModeSwitch(mode, { manageElgatoAutostart });
             
             // Export config for the new mode
             let exportPath: string | null = null;

@@ -29,6 +29,7 @@ cp "$BUN_PATH" "$MACOS/bun"
 
 # Copy the entire app source
 cp -r src "$RESOURCES/"
+cp -r shared "$RESOURCES/"
 cp -r emulator "$RESOURCES/"
 cp -r fonts "$RESOURCES/"
 cp -r scripts "$RESOURCES/"
@@ -46,12 +47,6 @@ cp -r ../wtf.sauhsoj.streamdecker.sdPlugin "$RESOURCES/"
 PLUGIN_PKG="$RESOURCES/wtf.sauhsoj.streamdecker.streamDeckPlugin"
 (cd ../wtf.sauhsoj.streamdecker.sdPlugin && zip -r "$PLUGIN_PKG" . -x "*.DS_Store")
 echo "Created plugin installer: $PLUGIN_PKG"
-
-# Copy shared modules (actions, config, exporters)
-mkdir -p "$RESOURCES/shared"
-cp -r ../shared/actions "$RESOURCES/shared/"
-cp -r ../shared/config "$RESOURCES/shared/"
-cp -r ../shared/exporters "$RESOURCES/shared/"
 
 # Fix systray2 binary name (it looks for tray_darwin, not tray_darwin_release)
 TRAY_BIN="$RESOURCES/node_modules/systray2/traybin"

@@ -4,7 +4,7 @@ import { readFileSync, existsSync } from 'fs';
 import { spawn, type ChildProcess } from 'child_process';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
-import { getIconsDir } from '../../../shared/config/paths.js';
+import { getIconsDir } from '../../shared/config/paths.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 

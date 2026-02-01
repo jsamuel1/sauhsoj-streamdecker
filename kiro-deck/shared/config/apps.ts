@@ -21,6 +21,48 @@ const ELGATO_PLUGINS_DIR = join(
 const PLUGIN_NAME = "wtf.sauhsoj.streamdecker.sdPlugin";
 
 /**
+ * Check if an app is in login items (autostart)
+ */
+export async function isInLoginItems(bundle: string): Promise<boolean> {
+  try {
+    const { stdout } = await execAsync(
+      `osascript -e 'tell application "System Events" to get the name of every login item'`
+    );
+    const name = APPS.elgato.bundle === bundle ? "Elgato Stream Deck" : bundle;
+    return stdout.includes(name);
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Add app to login items (autostart)
+ */
+export async function addToLoginItems(bundle: string): Promise<void> {
+  const appPath = `/Applications/${APPS.elgato.bundle === bundle ? "Elgato Stream Deck.app" : ""}`;
+  try {
+    await execAsync(
+      `osascript -e 'tell application "System Events" to make login item at end with properties {path:"${appPath}", hidden:false}'`
+    );
+  } catch {
+    /* may already exist */
+  }
+}
+
+/**
+ * Remove app from login items (autostart)
+ */
+export async function removeFromLoginItems(name: string): Promise<void> {
+  try {
+    await execAsync(
+      `osascript -e 'tell application "System Events" to delete login item "${name}"'`
+    );
+  } catch {
+    /* may not exist */
+  }
+}
+
+/**
  * Get bundled plugin installer path (.streamDeckPlugin)
  */
 function getBundledPluginInstallerPath(): string {
@@ -171,11 +213,13 @@ export async function checkModeSwitch(newMode: Config["mode"]): Promise<{
   areStopRunning: boolean[];
   needsPluginInstall: boolean;
   pluginStatus: { currentVersion: string | null; bundledVersion: string | null } | null;
+  elgatoInLoginItems: boolean;
 }> {
   const { start, stop } = getAppsForMode(newMode);
 
   const isStartRunning = start ? await isAppRunning(start.bundle) : true;
   const areStopRunning = await Promise.all(stop.map((s) => isAppRunning(s.bundle)));
+  const elgatoInLoginItems = await isInLoginItems(APPS.elgato.bundle);
   
   let needsPluginInstall = false;
   let pluginStatus = null;
@@ -192,6 +236,7 @@ export async function checkModeSwitch(newMode: Config["mode"]): Promise<{
     areStopRunning,
     needsPluginInstall,
     pluginStatus,
+    elgatoInLoginItems,
   };
 }
 
@@ -199,18 +244,33 @@ export async function checkModeSwitch(newMode: Config["mode"]): Promise<{
  * Execute mode switch - start/stop apps as needed
  */
 export async function executeModeSwitch(
-  newMode: Config["mode"]
-): Promise<{ started: string | null; stopped: string[]; pluginInstalled: boolean; pluginVersion: string | null }> {
+  newMode: Config["mode"],
+  options?: { manageElgatoAutostart?: boolean }
+): Promise<{ started: string | null; stopped: string[]; pluginInstalled: boolean; pluginVersion: string | null; autostartChanged: boolean }> {
   const { start, stop } = getAppsForMode(newMode);
   const stopped: string[] = [];
   let pluginInstalled = false;
   let pluginVersion: string | null = null;
+  let autostartChanged = false;
 
   // Stop apps that conflict
   for (const app of stop) {
     if (await isAppRunning(app.bundle)) {
       await quitApp(app.name);
       stopped.push(app.name);
+    }
+  }
+
+  // Manage Elgato autostart if requested
+  if (options?.manageElgatoAutostart) {
+    if (newMode === "standalone") {
+      // Switching TO standalone - remove Elgato from login items
+      await removeFromLoginItems("Elgato Stream Deck");
+      autostartChanged = true;
+    } else if (newMode === "elgato") {
+      // Switching TO elgato - add Elgato to login items
+      await addToLoginItems(APPS.elgato.bundle);
+      autostartChanged = true;
     }
   }
 
@@ -237,5 +297,5 @@ export async function executeModeSwitch(
     await new Promise((r) => setTimeout(r, 2000)); // Wait for app to start
   }
 
-  return { started, stopped, pluginInstalled, pluginVersion };
+  return { started, stopped, pluginInstalled, pluginVersion, autostartChanged };
 }

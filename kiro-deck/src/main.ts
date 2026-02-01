@@ -9,8 +9,8 @@ import { existsSync } from 'fs';
 import { join } from 'path';
 
 // Import from shared modules
-import { getIconsDir, getFontsDir } from '../../shared/config/paths.js';
-import { getConfig, saveConfig, isFirstRun, markFirstRunComplete } from '../../shared/config/loader.js';
+import { getIconsDir, getFontsDir } from '../shared/config/paths.js';
+import { getConfig, saveConfig, isFirstRun, markFirstRunComplete } from '../shared/config/loader.js';
 import {
   focusKiro,
   cycleKiroTabs,
@@ -21,8 +21,8 @@ import {
   switchAgent,
   getAgentList,
   launchKiro,
-} from '../../shared/actions/kiro.js';
-import { focusApp, sendKeystroke } from '../../shared/actions/terminal.js';
+} from '../shared/actions/kiro.js';
+import { focusApp, sendKeystroke } from '../shared/actions/terminal.js';
 
 const ICONS_DIR = getIconsDir();
 const FONT_PATH = join(getFontsDir(), 'Nunito-ExtraBold.ttf');
@@ -345,8 +345,20 @@ async function main() {
       console.log(`[Main] Device type changed to: ${device}`);
     }
   };
+  emulator.onModeSwitch = async (newMode, oldMode) => {
+    console.log(`[Main] Mode switch: ${oldMode} -> ${newMode}`);
+    if (oldMode === 'standalone' && newMode !== 'standalone') {
+      // Release the Stream Deck so other apps can use it
+      console.log('[Main] Disconnecting from Stream Deck for mode switch...');
+      await deckConnection.close();
+    } else if (oldMode !== 'standalone' && newMode === 'standalone') {
+      // Reconnect to Stream Deck
+      console.log('[Main] Reconnecting to Stream Deck...');
+      await deckConnection.connect();
+    }
+  };
   
-  // Connect to Stream Deck
+  // Connect to Stream Deck (only in standalone mode)
   deckConnection.on('connected', async (info) => {
     console.log(`[Main] Stream Deck connected: ${info.model}`);
     
@@ -370,9 +382,13 @@ async function main() {
   deckConnection.on('pageLeft', handlePageLeft);
   deckConnection.on('pageRight', handlePageRight);
   
-  await deckConnection.connect();
-  
-  setInterval(updateInfoBar, 30000);
+  // Only connect to device in standalone mode
+  if (config.mode === 'standalone') {
+    await deckConnection.connect();
+    setInterval(updateInfoBar, 30000);
+  } else {
+    console.log(`[Main] Mode is ${config.mode}, not connecting to Stream Deck`);
+  }
   
   process.on('SIGINT', async () => {
     console.log('\n👋 Shutting down...');

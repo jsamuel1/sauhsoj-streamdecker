@@ -3,7 +3,7 @@ import typescript from "@rollup/plugin-typescript";
 import commonjs from "@rollup/plugin-commonjs";
 
 export default {
-  input: "shared/plugin.ts",
+  input: "kiro-deck/shared/plugin.ts",
   output: {
     file: "wtf.sauhsoj.streamdecker.sdPlugin/bin/plugin.js",
     format: "es",
