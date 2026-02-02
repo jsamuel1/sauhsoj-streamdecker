@@ -1,6 +1,6 @@
 {
   "name": "sauhsoj-streamdecker",
-  "version": "0.1.12",
+  "version": "0.1.13",
   "description": "Stream Deck plugin for kiro-cli integration and SA productivity",
   "main": "shared/plugin.ts",
   "type": "module",
