@@ -1,51 +1,67 @@
-# sauhsoj-streamdecker
+# Streamdecker
 
-Streamdecker - Stream Deck controller for kiro-cli.
+Stream Deck controller for kiro-cli.
 
-## Architecture
+## Directory Structure
 
 ```
 sauhsoj-streamdecker/
-├── streamdecker/              # Main application (Bun)
-│   ├── src/main.ts         # Entry point
-│   ├── emulator/           # Web-based Stream Deck emulator
-│   └── build-app.sh        # Build signed .app bundle
+├── streamdecker/                    # Standalone app (Bun + menubar)
+│   ├── src/
+│   │   ├── main.ts                 # Entry point
+│   │   ├── updater.ts              # Auto-update from GitHub releases
+│   │   ├── deck/connection.ts      # Stream Deck HID connection
+│   │   ├── gui/tray.ts             # Menubar tray
+│   │   └── infobar/                # Neo LCD info bar renderer
+│   ├── emulator/                   # Web-based emulator (http://127.0.0.1:3848)
+│   ├── shared/
+│   │   ├── actions/                # Kiro actions (focus, cycle, launch, etc.)
+│   │   └── config/                 # Config loader, paths
+│   ├── scripts/                    # Shell scripts (folder picker, agent picker)
+│   ├── fonts/                      # Nunito font for info bar
+│   └── build-app.sh                # Build signed .app bundle
 │
-├── shared/                 # Shared modules
-│   ├── actions/            # Kiro-cli actions (focus, cycle, send keys)
-│   ├── config/             # Config schema, loader, app management
-│   └── exporters/          # BTT and Elgato profile exporters
+├── wtf.sauhsoj.streamdecker.sdPlugin/  # Elgato Stream Deck plugin
+│   ├── manifest.json               # Plugin manifest
+│   ├── bin/plugin.js               # Compiled plugin code
+│   ├── scripts/                    # AppleScript actions
+│   ├── imgs/                       # Plugin icons
+│   ├── ui/                         # Property inspector UIs
+│   ├── Kiro-Neo.streamDeckProfile  # Neo profile (8 keys)
+│   ├── Kiro-Mini.streamDeckProfile # Mini profile (6 keys)
+│   └── Kiro-OG.streamDeckProfile   # OG profile (15 keys)
 │
-├── wtf.sauhsoj.streamdecker.sdPlugin/  # Elgato plugin (bundled component)
-└── wtf.sauhsoj.kiro-icons.sdIconPack/  # Icon pack
+├── shared/icons/                   # Consolidated icon assets
+├── btt/                            # BetterTouchTool preset
+├── docs/                           # Project documentation
+└── scripts/                        # Build scripts, icon generation
 ```
 
 ## Modes
 
-Streamdecker supports three modes of operation:
-
-- **standalone** - Direct USB/HID control of Stream Deck (full features including Neo info bar)
-- **elgato** - Installs plugin to Elgato Stream Deck software
-- **btt** - Exports triggers to BetterTouchTool
+- **standalone** - Direct USB/HID control with full features (Neo info bar, auto-update)
+- **elgato** - Plugin for Elgato Stream Deck software with profiles
+- **btt** - BetterTouchTool preset export
 
 ## Features
 
-- **Focus Kiro** - Bring kiro-cli terminal window to foreground
-- **Switch Agent** - Switch kiro-cli to a different agent
-- **Send Yes/No/Trust** - Send responses to kiro-cli prompts
-- **Cycle Tabs** - Cycle through kiro-cli terminal tabs
-- **Neo Info Bar** - LCD strip showing agent name, context %, calendar (standalone mode only)
-- **Web Emulator** - Browser-based Stream Deck emulator at http://127.0.0.1:3848
+- Focus Kiro - Bring kiro-cli terminal to foreground
+- Cycle Tabs - Cycle through kiro-cli terminal tabs
+- Alert - Jump to tab with pending prompt
+- Launch - Open folder picker (short press) or last folder (long press)
+- Yes/No/Trust - Send responses to kiro-cli prompts
+- Switch Agent - Agent picker page or direct agent buttons
+- Neo Info Bar - LCD strip showing agent, context %, calendar
+- Web Emulator - Browser-based emulator at http://127.0.0.1:3848
+- Auto-Update - Check for updates from GitHub releases
 
 ## Installation
 
-Download the latest release from GitHub Releases, or build from source:
+Download from [GitHub Releases](https://github.com/jsamuel1/sauhsoj-streamdecker/releases):
 
-```bash
-cd streamdecker
-bun install
-./build-app.sh
-```
+- `Streamdecker.dmg` - Standalone macOS app
+- `wtf.sauhsoj.streamdecker.streamDeckPlugin` - Elgato plugin installer
+- `Kiro-*.streamDeckProfile` - Pre-configured profiles
 
 ## Development
 
@@ -53,13 +69,22 @@ bun install
 # Run standalone app
 cd streamdecker && bun run dev
 
-# Run emulator only
-cd streamdecker && bun run emulator
+# Build .app bundle
+cd streamdecker && ./build-app.sh
 
 # Build Elgato plugin
 npm run build
 ```
 
+## Config
+
+Config stored in `~/.config/streamdecker/config.json`:
+
+- `mode` - standalone, elgato, or btt
+- `device.type` - neo, mini, or og
+- `agents.favorites` - Favorite agents for quick access
+- `agents.shortcuts` - Keyboard shortcuts per agent
+
 ## Icons
 
-Icons generated using Amazon Nova Canvas via Bedrock. The Kiro ghost mascot logo is from [kiro.dev](https://kiro.dev).
+Generated using Amazon Nova Canvas via Bedrock. Kiro ghost mascot from [kiro.dev](https://kiro.dev).
