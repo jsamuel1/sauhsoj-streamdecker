@@ -224,6 +224,13 @@
       "Readonly": false,
       "DontAutoSwitchWhenInstalled": true,
       "AutoInstall": true
+    },
+    {
+      "Name": "Koding",
+      "DeviceType": 0,
+      "Readonly": false,
+      "DontAutoSwitchWhenInstalled": true,
+      "AutoInstall": true
     }
   ]
 }

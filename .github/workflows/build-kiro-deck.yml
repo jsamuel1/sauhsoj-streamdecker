@@ -74,10 +74,12 @@ jobs:
           # Copy profiles
           cp wtf.sauhsoj.streamdecker.sdPlugin/Kiro-Neo.streamDeckProfile dist/
           cp wtf.sauhsoj.streamdecker.sdPlugin/Kiro-Mini.streamDeckProfile dist/
+          cp wtf.sauhsoj.streamdecker.sdPlugin/Kiro-OG.streamDeckProfile dist/
           
           # Sign the profiles
           codesign --force --sign "$DEVELOPER_ID" dist/Kiro-Neo.streamDeckProfile
           codesign --force --sign "$DEVELOPER_ID" dist/Kiro-Mini.streamDeckProfile
+          codesign --force --sign "$DEVELOPER_ID" dist/Kiro-OG.streamDeckProfile
       
       - name: Upload app artifact
         uses: actions/upload-artifact@v4
@@ -98,6 +100,7 @@ jobs:
           path: |
             dist/Kiro-Neo.streamDeckProfile
             dist/Kiro-Mini.streamDeckProfile
+            dist/Kiro-OG.streamDeckProfile
       
       - name: Create Release
         if: startsWith(github.ref, 'refs/tags/')
@@ -108,6 +111,7 @@ jobs:
             dist/wtf.sauhsoj.streamdecker.streamDeckPlugin
             dist/Kiro-Neo.streamDeckProfile
             dist/Kiro-Mini.streamDeckProfile
+            dist/Kiro-OG.streamDeckProfile
           body_path: streamdecker/releases/${{ github.ref_name }}.md
           body: |
             ## Streamdecker v0.1.0
@@ -115,7 +119,7 @@ jobs:
             Stream Deck controller for kiro-cli.
             
             ### Features
-            - 8 buttons (Neo) / 6 buttons (Mini) for kiro-cli control
+            - 8 buttons (Neo) / 6 buttons (Mini) / 15 buttons (OG) for kiro-cli control
             - Focus, Cycle, Alert, Launch, Yes, No, Trust, Agent actions
             - Agent picker page - select agents directly from Stream Deck
             - Info bar status display
@@ -129,7 +133,7 @@ jobs:
             
             ### Requirements
             - macOS 12+
-            - Stream Deck Neo or Mini
+            - Stream Deck Neo, Mini, or OG (15-key)
             - iTerm2
             - Bun runtime (bundled in app)
             
