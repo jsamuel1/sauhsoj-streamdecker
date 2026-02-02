@@ -21,6 +21,7 @@ import {
   switchAgent,
   getAgentList,
   launchKiro,
+  launchKiroWithPicker,
 } from '../shared/actions/kiro.js';
 import { focusApp, sendKeystroke } from '../shared/actions/terminal.js';
 
@@ -70,12 +71,16 @@ let tray: ReturnType<typeof createTray> | null = null;
 const buttonImageCache: Map<number, string> = new Map();
 let infoBarCache: string | null = null;
 
-// Action registry for button presses
+// Long-press tracking for Launch button
+const LONG_PRESS_MS = 500;
+let launchButtonDownTime: number | null = null;
+
+// Action registry for button presses (short press)
 const ActionRegistry: Record<string, () => Promise<void>> = {
   'kiro.focus': async () => { await focusKiro(); },
   'kiro.cycle': cycleKiroTabs,
   'kiro.alert': alertIdleKiro,
-  'kiro.launch': launchKiro,
+  'kiro.launch': launchKiroWithPicker,  // Default: picker
   'kiro.yes': sendYes,
   'kiro.no': sendNo,
   'kiro.thinking': sendTrust,
@@ -183,6 +188,13 @@ async function showInfoBarMessage(text: string, color: string = '#9046ff', durat
 async function handleButtonDown(index: number) {
   console.log(`[Main] Button ${index} pressed (page: ${currentPage})`);
   
+  // Track launch button for long-press
+  const actionId = buttonActions[index];
+  if (actionId === 'kiro.launch' && currentPage === 'main') {
+    launchButtonDownTime = Date.now();
+    return; // Wait for button up
+  }
+  
   if (currentPage === 'agents') {
     // Agent page - select agent and return to main
     const agentName = agentList[index];
@@ -206,7 +218,6 @@ async function handleButtonDown(index: number) {
   }
   
   // Main page
-  const actionId = buttonActions[index];
   if (actionId === 'kiro.agent') {
     await showAgentPage();
     return;
@@ -218,6 +229,30 @@ async function handleButtonDown(index: number) {
       await action();
     } catch (e) {
       console.error(`[Main] Action failed:`, e);
+    }
+  }
+}
+
+async function handleButtonUp(index: number) {
+  const actionId = buttonActions[index];
+  
+  // Handle launch button long-press
+  if (actionId === 'kiro.launch' && launchButtonDownTime !== null) {
+    const pressDuration = Date.now() - launchButtonDownTime;
+    launchButtonDownTime = null;
+    
+    try {
+      if (pressDuration >= LONG_PRESS_MS) {
+        // Long press: launch in last used folder
+        console.log('[Main] Launch long-press: last used folder');
+        await launchKiro();
+      } else {
+        // Short press: folder picker
+        console.log('[Main] Launch short-press: folder picker');
+        await launchKiroWithPicker();
+      }
+    } catch (e) {
+      console.error(`[Main] Launch action failed:`, e);
     }
   }
 }
@@ -333,7 +368,7 @@ async function main() {
   // Start emulator server
   emulator = new EmulatorServer();
   emulator.onButtonDown = handleButtonDown;
-  emulator.onButtonUp = () => {};
+  emulator.onButtonUp = handleButtonUp;
   emulator.onPageLeft = handlePageLeft;
   emulator.onPageRight = handlePageRight;
   emulator.onClientConnect = (send) => {
@@ -381,6 +416,7 @@ async function main() {
   });
   
   deckConnection.on('buttonDown', handleButtonDown);
+  deckConnection.on('buttonUp', handleButtonUp);
   deckConnection.on('pageLeft', handlePageLeft);
   deckConnection.on('pageRight', handlePageRight);
   

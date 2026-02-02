@@ -151,16 +151,60 @@ export function getAgentList(): string[] {
 
 export async function launchKiro(): Promise<void> {
   const terminal = (await detectTerminal()) || "iTerm";
+  const cmd = "/bin/zsh -lic 'kiro-cli chat'";
   await runAppleScript(`
     tell application "${terminal}"
       activate
       if (count of windows) = 0 then
-        create window with default profile
+        create window with default profile command "${cmd}"
+      else
+        tell current window
+          create tab with default profile command "${cmd}"
+        end tell
       end if
-      tell current window
-        create tab with default profile
-        tell current session to write text "kiro-cli chat"
-      end tell
+    end tell
+  `);
+}
+
+/**
+ * Launch kiro-cli with folder picker
+ */
+export async function launchKiroWithPicker(): Promise<void> {
+  const terminal = (await detectTerminal()) || "iTerm";
+  const { getScriptsDir } = await import("../config/paths.js");
+  const pickerScript = join(getScriptsDir(), "launch-kiro-picker.sh");
+  const cmd = `/bin/zsh -lic '${pickerScript}'`;
+  
+  await runAppleScript(`
+    tell application "${terminal}"
+      activate
+      if (count of windows) = 0 then
+        create window with default profile command "${cmd}"
+      else
+        tell current window
+          create tab with default profile command "${cmd}"
+        end tell
+      end if
+    end tell
+  `);
+}
+
+/**
+ * Launch kiro-cli in a specific folder
+ */
+export async function launchKiroInFolder(folder: string): Promise<void> {
+  const terminal = (await detectTerminal()) || "iTerm";
+  const cmd = `/bin/zsh -lic 'cd "${folder}" && kiro-cli chat'`;
+  await runAppleScript(`
+    tell application "${terminal}"
+      activate
+      if (count of windows) = 0 then
+        create window with default profile command "${cmd}"
+      else
+        tell current window
+          create tab with default profile command "${cmd}"
+        end tell
+      end if
     end tell
   `);
 }

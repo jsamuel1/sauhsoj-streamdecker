@@ -8,6 +8,8 @@ export {
   switchAgent,
   getAgentList,
   launchKiro,
+  launchKiroWithPicker,
+  launchKiroInFolder,
 } from "./kiro.js";
 export {
   runAppleScript,
