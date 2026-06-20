@@ -82,8 +82,26 @@ Config stored in `~/.config/streamdecker/config.json`:
 
 - `mode` - standalone, elgato, or btt
 - `device.type` - neo, mini, or og
+- `terminal.app` - `cmux`, `iTerm`, `Terminal`, `Warp`, `WezTerm`, or `auto` (default)
 - `agents.favorites` - Favorite agents for quick access
 - `agents.shortcuts` - Keyboard shortcuts per agent
+
+### Terminal backend
+
+streamdecker drives whichever terminal runs `kiro-cli`. With `terminal.app: "auto"`
+(the default) a running [cmux](https://github.com/manaflow-ai/cmux) is preferred;
+otherwise the first running supported terminal is used. Set `terminal.app`
+explicitly to force one.
+
+- **cmux** is driven via the `cmux` CLI over its control socket. Requires cmux's
+  socket control mode set to **Automation** (Settings → Automation → Socket
+  Control Mode) and the `cmux` binary on `PATH`. No macOS Automation permission
+  prompt.
+- **iTerm/Terminal/Warp/WezTerm** are driven via AppleScript and require macOS
+  Automation permission (System Settings → Privacy & Security → Automation).
+
+Design and implementation notes live under
+[`docs/superpowers/`](docs/superpowers/).
 
 ## Icons
 
