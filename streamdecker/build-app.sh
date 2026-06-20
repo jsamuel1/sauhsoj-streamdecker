@@ -38,6 +38,13 @@ cp package.json "$RESOURCES/"
 cp tsconfig.json "$RESOURCES/"
 cp -r ../shared/icons "$RESOURCES/"
 
+# Build the native menubar helper (universal arm64+x86_64) and bundle it
+echo "Building native menubar helper..."
+bash native/build-menubar.sh
+mkdir -p "$RESOURCES/native/bin"
+cp native/bin/streamdecker-menubar "$RESOURCES/native/bin/"
+chmod +x "$RESOURCES/native/bin/streamdecker-menubar"
+
 # Build and copy Elgato plugin (for elgato mode installation)
 echo "Building Elgato plugin..."
 (cd .. && npm run build)
@@ -47,13 +54,6 @@ cp -r ../wtf.sauhsoj.streamdecker.sdPlugin "$RESOURCES/"
 PLUGIN_PKG="$RESOURCES/wtf.sauhsoj.streamdecker.streamDeckPlugin"
 (cd .. && zip -r "$PLUGIN_PKG" wtf.sauhsoj.streamdecker.sdPlugin -x "*.DS_Store")
 echo "Created plugin installer: $PLUGIN_PKG"
-
-# Fix systray2 binary name (it looks for tray_darwin, not tray_darwin_release)
-TRAY_BIN="$RESOURCES/node_modules/systray2/traybin"
-if [[ -f "$TRAY_BIN/tray_darwin_release" && ! -f "$TRAY_BIN/tray_darwin" ]]; then
-    cp "$TRAY_BIN/tray_darwin_release" "$TRAY_BIN/tray_darwin"
-    chmod +x "$TRAY_BIN/tray_darwin"
-fi
 
 # Create launcher that uses embedded bun
 cat > "$MACOS/kiro-deck" << 'LAUNCHER'
@@ -151,11 +151,14 @@ fi
 
 if [[ -n "$DEVELOPER_ID" ]]; then
     echo "Signing native binaries..."
-    # Sign all .node, .dylib, and binary files in node_modules with entitlements
-    find "$RESOURCES/node_modules" -type f \( -name "*.node" -o -name "*.dylib" -o -name "tray_darwin_release" -o -name "tray_darwin" \) | while read -r binary; do
+    # Sign all .node and .dylib files in node_modules with entitlements
+    find "$RESOURCES/node_modules" -type f \( -name "*.node" -o -name "*.dylib" \) | while read -r binary; do
         codesign --force --options runtime --entitlements "$SCRIPT_DIR/entitlements.plist" --sign "$DEVELOPER_ID" "$binary" 2>/dev/null || true
     done
-    
+
+    # Sign the native menubar helper
+    codesign --force --options runtime --entitlements "$SCRIPT_DIR/entitlements.plist" --sign "$DEVELOPER_ID" "$RESOURCES/native/bin/streamdecker-menubar" || true
+
     # Sign bun with entitlements
     codesign --force --options runtime --entitlements "$SCRIPT_DIR/entitlements.plist" --sign "$DEVELOPER_ID" "$MACOS/bun"
     
