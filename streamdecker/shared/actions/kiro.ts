@@ -1,132 +1,50 @@
-import { runAppleScript, focusApp, sendKeystroke, detectTerminal } from "./terminal.js";
+import { getTerminalBackend } from "../terminal/factory.js";
 import { getConfig, addRecentAgent } from "../config/loader.js";
-import { KIRO_AGENTS_DIR } from "../config/paths.js";
+import { KIRO_AGENTS_DIR, getScriptsDir } from "../config/paths.js";
 import { readdirSync, readFileSync } from "fs";
 import { join } from "path";
 
 /**
- * Find and focus terminal tab with kiro-cli running
+ * Find and focus the terminal tab running kiro-cli.
  */
 export async function focusKiro(): Promise<boolean> {
-  const terminal = (await detectTerminal()) || "iTerm";
-  const cmd = getConfig().terminal.detectCommand;
-
-  const result = await runAppleScript(`
-    tell application "${terminal}"
-      activate
-      repeat with w in windows
-        repeat with t in tabs of w
-          set s to current session of t
-          set theTty to tty of s
-          set hasKiro to (do shell script "ps -t " & theTty & " -o command= | grep -q ${cmd} && echo yes || echo no")
-          if hasKiro is "yes" then
-            select t
-            return "found"
-          end if
-        end repeat
-      end repeat
-    end tell
-    return "none"
-  `);
-  return result === "found";
+  const backend = await getTerminalBackend();
+  return (await backend.focus()) === "ok";
 }
 
 /**
- * Cycle through kiro-cli tabs
+ * Cycle to the next kiro-cli tab/surface.
  */
 export async function cycleKiroTabs(): Promise<void> {
-  const terminal = (await detectTerminal()) || "iTerm";
-  const cmd = getConfig().terminal.detectCommand;
-
-  await focusApp(terminal);
-  await runAppleScript(`
-    tell application "${terminal}"
-      tell current window
-        set n to count of tabs
-        set c to 0
-        repeat with i from 1 to n
-          if tab i is current tab then set c to i
-        end repeat
-        repeat with i from 1 to n - 1
-          set idx to ((c + i - 1) mod n) + 1
-          set s to current session of tab idx
-          set theTty to tty of s
-          set hasKiro to (do shell script "ps -t " & theTty & " -o command= | grep -q ${cmd} && echo yes || echo no")
-          if hasKiro is "yes" then
-            select tab idx
-            return
-          end if
-        end repeat
-      end tell
-    end tell
-  `);
+  await (await getTerminalBackend()).cycleTab();
 }
 
 /**
- * Find next idle kiro-cli tab (not processing)
+ * Jump to the next tab/surface needing attention.
  */
 export async function alertIdleKiro(): Promise<void> {
-  const terminal = (await detectTerminal()) || "iTerm";
-  const cmd = getConfig().terminal.detectCommand;
-
-  await runAppleScript(`
-    tell application "${terminal}"
-      activate
-      tell current window
-        set n to count of tabs
-        set c to 0
-        repeat with i from 1 to n
-          if tab i is current tab then set c to i
-        end repeat
-        repeat with i from 1 to n - 1
-          set idx to ((c + i - 1) mod n) + 1
-          set s to current session of tab idx
-          set theTty to tty of s
-          set hasKiro to (do shell script "ps -t " & theTty & " -o command= | grep -q ${cmd} && echo yes || echo no")
-          if hasKiro is "yes" and is processing of s is false then
-            select tab idx
-            return
-          end if
-        end repeat
-      end tell
-    end tell
-  `);
+  await (await getTerminalBackend()).nextAlertTab();
 }
 
 export async function sendYes(): Promise<void> {
-  await focusKiro();
-  await new Promise((r) => setTimeout(r, 50));
-  await sendKeystroke("y");
+  await (await getTerminalBackend()).send("y");
 }
 
 export async function sendNo(): Promise<void> {
-  await focusKiro();
-  await new Promise((r) => setTimeout(r, 50));
-  await sendKeystroke("n");
+  await (await getTerminalBackend()).send("n");
 }
 
 export async function sendTrust(): Promise<void> {
-  await focusKiro();
-  await new Promise((r) => setTimeout(r, 50));
-  await sendKeystroke("t");
+  await (await getTerminalBackend()).send("t");
 }
 
 export async function switchAgent(name: string): Promise<void> {
-  const terminal = (await detectTerminal()) || "iTerm";
-  await focusApp(terminal);
-  await new Promise((r) => setTimeout(r, 100));
-  await runAppleScript(`
-    tell application "System Events"
-      keystroke "/agent switch ${name}"
-      delay 0.1
-      keystroke return
-    end tell
-  `);
+  await (await getTerminalBackend()).send(`/agent switch ${name}`);
   addRecentAgent(name);
 }
 
 /**
- * Get list of available agents
+ * Get list of available agents.
  */
 export function getAgentList(): string[] {
   const config = getConfig();
@@ -150,61 +68,20 @@ export function getAgentList(): string[] {
 }
 
 export async function launchKiro(): Promise<void> {
-  const terminal = (await detectTerminal()) || "iTerm";
-  const cmd = "/bin/zsh -lic 'kiro-cli chat'";
-  await runAppleScript(`
-    tell application "${terminal}"
-      activate
-      if (count of windows) = 0 then
-        create window with default profile command "${cmd}"
-      else
-        tell current window
-          create tab with default profile command "${cmd}"
-        end tell
-      end if
-    end tell
-  `);
+  await (await getTerminalBackend()).openTab("kiro-cli chat");
 }
 
 /**
- * Launch kiro-cli with folder picker
+ * Launch kiro-cli with folder picker.
  */
 export async function launchKiroWithPicker(): Promise<void> {
-  const terminal = (await detectTerminal()) || "iTerm";
-  const { getScriptsDir } = await import("../config/paths.js");
   const pickerScript = join(getScriptsDir(), "launch-kiro-picker.sh");
-  const cmd = `/bin/zsh -lic '${pickerScript}'`;
-  
-  await runAppleScript(`
-    tell application "${terminal}"
-      activate
-      if (count of windows) = 0 then
-        create window with default profile command "${cmd}"
-      else
-        tell current window
-          create tab with default profile command "${cmd}"
-        end tell
-      end if
-    end tell
-  `);
+  await (await getTerminalBackend()).openTab(pickerScript);
 }
 
 /**
- * Launch kiro-cli in a specific folder
+ * Launch kiro-cli in a specific folder.
  */
 export async function launchKiroInFolder(folder: string): Promise<void> {
-  const terminal = (await detectTerminal()) || "iTerm";
-  const cmd = `/bin/zsh -lic 'cd "${folder}" && kiro-cli chat'`;
-  await runAppleScript(`
-    tell application "${terminal}"
-      activate
-      if (count of windows) = 0 then
-        create window with default profile command "${cmd}"
-      else
-        tell current window
-          create tab with default profile command "${cmd}"
-        end tell
-      end if
-    end tell
-  `);
+  await (await getTerminalBackend()).openTab(`cd "${folder}" && kiro-cli chat`);
 }
