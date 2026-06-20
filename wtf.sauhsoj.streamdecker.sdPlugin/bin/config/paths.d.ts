@@ -10,7 +10,7 @@ export declare const KIRO_AGENTS_DIR: string;
 export declare function getScriptsDir(): string;
 /**
  * Resolve icons directory with fallback chain:
- * 1. User overrides: ~/.config/kiro-deck/icons/
+ * 1. User overrides: ~/.config/streamdecker/icons/
  * 2. Bundled icons: .app/Contents/Resources/icons/
  * 3. Icon pack: wtf.sauhsoj.kiro-icons.sdIconPack/icons/
  */

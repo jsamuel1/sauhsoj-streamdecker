@@ -5,13 +5,10 @@ import streamDeck, {
   SingletonAction,
   WillAppearEvent,
 } from "@elgato/streamdeck";
-import { exec } from "child_process";
-import { promisify } from "util";
 import { readdir } from "fs/promises";
 import { homedir } from "os";
 import { join } from "path";
-
-const execAsync = promisify(exec);
+import { getTerminalBackend } from "../terminal/factory.js";
 
 @action({ UUID: "wtf.sauhsoj.streamdecker.switch-agent-personality" })
 export class SwitchAgentPersonalityAction extends SingletonAction {
@@ -43,14 +40,8 @@ export class SwitchAgentPersonalityAction extends SingletonAction {
     const agentName = this.extractAgentName(agentFile);
 
     try {
-      await execAsync(`osascript -e '
-        tell application "iTerm"
-          activate
-          tell current session of current window
-            write text "/agent switch ${agentName}"
-          end tell
-        end tell
-      '`);
+      const backend = await getTerminalBackend();
+      await backend.send(`/agent switch ${agentName}`);
     } catch (err) {
       streamDeck.logger.error(`Failed to switch agent: ${err}`);
       await ev.action.showAlert();

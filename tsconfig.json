@@ -10,5 +10,6 @@
     "outDir": "./wtf.sauhsoj.streamdecker.sdPlugin/bin",
     "rootDir": "./streamdecker/shared"
   },
-  "include": ["streamdecker/shared/**/*"]
+  "include": ["streamdecker/shared/**/*"],
+  "exclude": ["streamdecker/shared/**/*.test.ts"]
 }

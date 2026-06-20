@@ -5,13 +5,11 @@ import streamDeck, {
   SingletonAction,
   WillAppearEvent,
 } from "@elgato/streamdeck";
-import { exec } from "child_process";
-import { promisify } from "util";
 import { readFile, writeFile } from "fs/promises";
 import { homedir } from "os";
 import { join } from "path";
+import { getTerminalBackend } from "../terminal/factory.js";
 
-const execAsync = promisify(exec);
 const RECENT_FILE = join(homedir(), ".kiro", "streamdeck-recent-folders.json");
 
 @action({ UUID: "wtf.sauhsoj.streamdecker.launch-kiro-folder" })
@@ -42,17 +40,8 @@ export class LaunchKiroFolderAction extends SingletonAction {
     }
 
     try {
-      await execAsync(`osascript -e '
-        tell application "iTerm"
-          activate
-          tell current window
-            create tab with default profile
-            tell current session
-              write text "cd ${folder} && kiro-cli chat"
-            end tell
-          end tell
-        end tell
-      '`);
+      const backend = await getTerminalBackend();
+      await backend.openTab(`cd "${folder}" && kiro-cli chat`);
 
       // Update recent folders
       await this.addToRecent(folder);

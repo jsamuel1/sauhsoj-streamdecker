@@ -29,13 +29,13 @@ export declare const DeviceSchema: z.ZodObject<{
     brightness?: number | undefined;
 }>;
 export declare const TerminalSchema: z.ZodObject<{
-    app: z.ZodDefault<z.ZodEnum<["iTerm", "Terminal", "Warp", "WezTerm", "auto"]>>;
+    app: z.ZodDefault<z.ZodEnum<["cmux", "iTerm", "Terminal", "Warp", "WezTerm", "auto"]>>;
     detectCommand: z.ZodDefault<z.ZodString>;
 }, "strip", z.ZodTypeAny, {
-    app: "iTerm" | "Terminal" | "Warp" | "WezTerm" | "auto";
+    app: "iTerm" | "Terminal" | "Warp" | "WezTerm" | "cmux" | "auto";
     detectCommand: string;
 }, {
-    app?: "iTerm" | "Terminal" | "Warp" | "WezTerm" | "auto" | undefined;
+    app?: "iTerm" | "Terminal" | "Warp" | "WezTerm" | "cmux" | "auto" | undefined;
     detectCommand?: string | undefined;
 }>;
 export declare const ThemeSchema: z.ZodObject<{
@@ -103,13 +103,13 @@ export declare const ConfigSchema: z.ZodObject<{
         label?: string | undefined;
     }>, "many">>;
     terminal: z.ZodDefault<z.ZodObject<{
-        app: z.ZodDefault<z.ZodEnum<["iTerm", "Terminal", "Warp", "WezTerm", "auto"]>>;
+        app: z.ZodDefault<z.ZodEnum<["cmux", "iTerm", "Terminal", "Warp", "WezTerm", "auto"]>>;
         detectCommand: z.ZodDefault<z.ZodString>;
     }, "strip", z.ZodTypeAny, {
-        app: "iTerm" | "Terminal" | "Warp" | "WezTerm" | "auto";
+        app: "iTerm" | "Terminal" | "Warp" | "WezTerm" | "cmux" | "auto";
         detectCommand: string;
     }, {
-        app?: "iTerm" | "Terminal" | "Warp" | "WezTerm" | "auto" | undefined;
+        app?: "iTerm" | "Terminal" | "Warp" | "WezTerm" | "cmux" | "auto" | undefined;
         detectCommand?: string | undefined;
     }>>;
     theme: z.ZodOptional<z.ZodObject<{
@@ -156,6 +156,10 @@ export declare const ConfigSchema: z.ZodObject<{
         shortcuts: Record<string, string>;
         recent: string[];
     };
+    terminal: {
+        app: "iTerm" | "Terminal" | "Warp" | "WezTerm" | "cmux" | "auto";
+        detectCommand: string;
+    };
     mode: "standalone" | "btt" | "elgato";
     device: {
         type: "neo" | "mini";
@@ -167,10 +171,6 @@ export declare const ConfigSchema: z.ZodObject<{
         icon?: string | undefined;
         label?: string | undefined;
     }[];
-    terminal: {
-        app: "iTerm" | "Terminal" | "Warp" | "WezTerm" | "auto";
-        detectCommand: string;
-    };
     launchAtLogin: boolean;
     firstRun: boolean;
     theme?: {
@@ -188,6 +188,10 @@ export declare const ConfigSchema: z.ZodObject<{
         shortcuts?: Record<string, string> | undefined;
         recent?: string[] | undefined;
     } | undefined;
+    terminal?: {
+        app?: "iTerm" | "Terminal" | "Warp" | "WezTerm" | "cmux" | "auto" | undefined;
+        detectCommand?: string | undefined;
+    } | undefined;
     mode?: "standalone" | "btt" | "elgato" | undefined;
     device?: {
         type?: "neo" | "mini" | undefined;
@@ -199,10 +203,6 @@ export declare const ConfigSchema: z.ZodObject<{
         icon?: string | undefined;
         label?: string | undefined;
     }[] | undefined;
-    terminal?: {
-        app?: "iTerm" | "Terminal" | "Warp" | "WezTerm" | "auto" | undefined;
-        detectCommand?: string | undefined;
-    } | undefined;
     theme?: {
         accentColor?: string | undefined;
         backgroundColor?: string | undefined;
