@@ -13,15 +13,15 @@ jobs:
       contents: write
     
     steps:
-      - uses: actions/checkout@v4
-      
+      - uses: actions/checkout@v7
+
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
-          node-version: '20'
-      
+          node-version: '22'
+
       - name: Setup Bun
-        uses: oven-sh/setup-bun@v1
+        uses: oven-sh/setup-bun@v2
         with:
           bun-version: latest
       
@@ -82,19 +82,19 @@ jobs:
           codesign --force --sign "$DEVELOPER_ID" dist/Kiro-OG.streamDeckProfile
       
       - name: Upload app artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: Streamdecker-macOS
           path: streamdecker/dist/Streamdecker.dmg
       
       - name: Upload plugin artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: Streamdecker-Plugin
           path: dist/wtf.sauhsoj.streamdecker.streamDeckPlugin
       
       - name: Upload profile artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: Streamdecker-Profiles
           path: |
@@ -104,7 +104,7 @@ jobs:
       
       - name: Create Release
         if: startsWith(github.ref, 'refs/tags/')
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v3
         with:
           files: |
             streamdecker/dist/Streamdecker.dmg
