@@ -5,7 +5,8 @@
   "scripts": {
     "dev": "bun run src/main.ts",
     "build": "bun build src/main.ts --outdir=dist --target=bun",
-    "emulator": "bun run emulator/server.ts"
+    "emulator": "bun run emulator/server.ts",
+    "test": "bun test"
   },
   "dependencies": {
     "@elgato-stream-deck/node": "^6.2.0",
