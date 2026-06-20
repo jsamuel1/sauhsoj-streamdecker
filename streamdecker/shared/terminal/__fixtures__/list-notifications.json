@@ -1,0 +1,18 @@
+[
+  {
+    "id": "11111111-2222-3333-4444-555555555555",
+    "workspace_ref": "workspace:1",
+    "surface_ref": "surface:2",
+    "title": "kiro-cli",
+    "body": "Approval needed",
+    "read": false
+  },
+  {
+    "id": "66666666-7777-8888-9999-aaaaaaaaaaaa",
+    "workspace_ref": "workspace:1",
+    "surface_ref": "surface:3",
+    "title": "kiro-cli",
+    "body": "Task complete",
+    "read": false
+  }
+]
