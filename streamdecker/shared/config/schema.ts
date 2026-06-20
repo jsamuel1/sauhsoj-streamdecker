@@ -33,7 +33,7 @@ export const DeviceSchema = z.object({
 
 // Terminal configuration
 export const TerminalSchema = z.object({
-  app: z.enum(["iTerm", "Terminal", "Warp", "WezTerm", "auto"]).default("auto"),
+  app: z.enum(["cmux", "iTerm", "Terminal", "Warp", "WezTerm", "auto"]).default("auto"),
   detectCommand: z.string().default("kiro-cli"),
 });
 
