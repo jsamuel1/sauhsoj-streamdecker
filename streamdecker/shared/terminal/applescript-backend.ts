@@ -10,6 +10,11 @@ const defaultRunner: AppleScriptRunner = async (script) => {
   return stdout.trim();
 };
 
+/** Escape a value for embedding inside an AppleScript double-quoted string literal. */
+function escapeAppleScript(value: string): string {
+  return value.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
+}
+
 /** Drives GUI terminals (iTerm/Terminal/Warp/WezTerm) via AppleScript. */
 export class AppleScriptBackend implements TerminalBackend {
   readonly name: BackendName;
@@ -128,18 +133,22 @@ export class AppleScriptBackend implements TerminalBackend {
   async send(text: string): Promise<void> {
     await this.focus();
     await new Promise((r) => setTimeout(r, 50));
-    await this.run(`tell application "System Events" to keystroke "${text}"`);
+    await this.run(`tell application "System Events" to keystroke "${escapeAppleScript(text)}"`);
   }
 
   async sendKey(key: string): Promise<void> {
     await this.run(`tell application "${this.name}" to activate`);
     if (key === "escape") {
       await this.run(`tell application "System Events" to key code 53`);
+    } else if (key === "return" || key === "enter") {
+      await this.run(`tell application "System Events" to key code 36`);
     } else if (key.startsWith("ctrl+")) {
       const letter = key.slice(5);
-      await this.run(`tell application "System Events" to keystroke "${letter}" using control down`);
+      await this.run(
+        `tell application "System Events" to keystroke "${escapeAppleScript(letter)}" using control down`
+      );
     } else {
-      await this.run(`tell application "System Events" to keystroke "${key}"`);
+      await this.run(`tell application "System Events" to keystroke "${escapeAppleScript(key)}"`);
     }
   }
 }

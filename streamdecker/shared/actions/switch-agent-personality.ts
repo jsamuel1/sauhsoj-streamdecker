@@ -42,6 +42,7 @@ export class SwitchAgentPersonalityAction extends SingletonAction {
     try {
       const backend = await getTerminalBackend();
       await backend.send(`/agent switch ${agentName}`);
+      await backend.sendKey("return");
     } catch (err) {
       streamDeck.logger.error(`Failed to switch agent: ${err}`);
       await ev.action.showAlert();

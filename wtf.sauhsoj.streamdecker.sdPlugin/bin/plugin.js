@@ -8051,8 +8051,25 @@ function parseCurrentSurfaceRef(output) {
     }
     return undefined;
 }
-/** First notification id (uuid) from `cmux list-notifications --json`, or null if none. */
+/**
+ * First notification id from `cmux list-notifications --json`, or null if none.
+ * Prefers the parsed array's first `id` field; falls back to a raw UUID scan for
+ * non-JSON output (e.g. the plain "No notifications" line) or unexpected shapes.
+ */
 function parseFirstNotificationId(jsonText) {
+    try {
+        const parsed = JSON.parse(jsonText);
+        if (Array.isArray(parsed)) {
+            if (parsed.length === 0)
+                return null;
+            const id = parsed[0]?.id;
+            if (typeof id === "string" && UUID.test(id))
+                return id;
+        }
+    }
+    catch {
+        /* not JSON (e.g. "No notifications") — fall through to regex scan */
+    }
     const m = jsonText.match(UUID);
     return m ? m[0] : null;
 }
@@ -8088,7 +8105,7 @@ class CmuxBackend {
         return "ok";
     }
     async send(text) {
-        await this.run(["send", "--", `${text}\n`]);
+        await this.run(["send", "--", text]);
     }
     async sendKey(key) {
         await this.run(["send-key", key]);
@@ -8096,8 +8113,11 @@ class CmuxBackend {
     async openTab(command) {
         const created = await this.run(["new-surface", "--type", "terminal"]);
         const ref = parseSurfaceRefs(created)[0];
-        const target = ref ? ["--surface", ref] : [];
-        await this.run(["send", ...target, "--", `${command}\n`]);
+        if (!ref) {
+            throw new Error(`cmux new-surface did not return a surface ref: ${created}`);
+        }
+        // Trailing newline runs the command in the new surface.
+        await this.run(["send", "--surface", ref, "--", `${command}\n`]);
     }
     async nextAlertTab() {
         const out = await this.run(["list-notifications", "--json"]);
@@ -8125,6 +8145,10 @@ const defaultRunner = async (script) => {
     const { stdout } = await execAsync$3(`osascript -e '${script.replace(/'/g, "'\"'\"'")}'`);
     return stdout.trim();
 };
+/** Escape a value for embedding inside an AppleScript double-quoted string literal. */
+function escapeAppleScript(value) {
+    return value.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
+}
 /** Drives GUI terminals (iTerm/Terminal/Warp/WezTerm) via AppleScript. */
 class AppleScriptBackend {
     name;
@@ -8233,19 +8257,22 @@ class AppleScriptBackend {
     async send(text) {
         await this.focus();
         await new Promise((r) => setTimeout(r, 50));
-        await this.run(`tell application "System Events" to keystroke "${text}"`);
+        await this.run(`tell application "System Events" to keystroke "${escapeAppleScript(text)}"`);
     }
     async sendKey(key) {
         await this.run(`tell application "${this.name}" to activate`);
         if (key === "escape") {
             await this.run(`tell application "System Events" to key code 53`);
         }
+        else if (key === "return" || key === "enter") {
+            await this.run(`tell application "System Events" to key code 36`);
+        }
         else if (key.startsWith("ctrl+")) {
             const letter = key.slice(5);
-            await this.run(`tell application "System Events" to keystroke "${letter}" using control down`);
+            await this.run(`tell application "System Events" to keystroke "${escapeAppleScript(letter)}" using control down`);
         }
         else {
-            await this.run(`tell application "System Events" to keystroke "${key}"`);
+            await this.run(`tell application "System Events" to keystroke "${escapeAppleScript(key)}"`);
         }
     }
 }
@@ -12604,6 +12631,7 @@ let SwitchAgentPersonalityAction = (() => {
             try {
                 const backend = await getTerminalBackend();
                 await backend.send(`/agent switch ${agentName}`);
+                await backend.sendKey("return");
             }
             catch (err) {
                 streamDeck.logger.error(`Failed to switch agent: ${err}`);

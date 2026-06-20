@@ -39,7 +39,9 @@ export async function sendTrust(): Promise<void> {
 }
 
 export async function switchAgent(name: string): Promise<void> {
-  await (await getTerminalBackend()).send(`/agent switch ${name}`);
+  const backend = await getTerminalBackend();
+  await backend.send(`/agent switch ${name}`);
+  await backend.sendKey("return");
   addRecentAgent(name);
 }
 

@@ -43,6 +43,13 @@ test("parseFirstNotificationId returns null when there are no notifications", ()
   expect(parseFirstNotificationId("No notifications")).toBeNull();
 });
 
+test("parseFirstNotificationId prefers the .id field over an earlier UUID-shaped field", () => {
+  const json = JSON.stringify([
+    { created_at: "00000000-0000-0000-0000-000000000000", id: "11111111-2222-3333-4444-555555555555" },
+  ]);
+  expect(parseFirstNotificationId(json)).toBe("11111111-2222-3333-4444-555555555555");
+});
+
 test("nextSurfaceRef wraps around and handles edge cases", () => {
   expect(nextSurfaceRef(["surface:1", "surface:2", "surface:3"], "surface:2")).toBe("surface:3");
   expect(nextSurfaceRef(["surface:1", "surface:2", "surface:3"], "surface:3")).toBe("surface:1");

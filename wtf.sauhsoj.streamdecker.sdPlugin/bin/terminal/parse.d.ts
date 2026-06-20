@@ -5,7 +5,11 @@ export declare function parseSurfaceRefs(output: string): string[];
  * The focused line is marked with a leading `*` and/or a trailing `[selected]`.
  */
 export declare function parseCurrentSurfaceRef(output: string): string | undefined;
-/** First notification id (uuid) from `cmux list-notifications --json`, or null if none. */
+/**
+ * First notification id from `cmux list-notifications --json`, or null if none.
+ * Prefers the parsed array's first `id` field; falls back to a raw UUID scan for
+ * non-JSON output (e.g. the plain "No notifications" line) or unexpected shapes.
+ */
 export declare function parseFirstNotificationId(jsonText: string): string | null;
 /** Given ordered refs and the current ref, return the next (wrapping). null if <2 refs. */
 export declare function nextSurfaceRef(refs: string[], current: string | undefined): string | null;

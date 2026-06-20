@@ -42,12 +42,27 @@ test("cycleTab and nextAlertTab return ok and target the configured app", async 
   expect(scripts.some((s) => s.includes("is processing of s is false"))).toBe(true);
 });
 
-test("send focuses then types text via System Events", async () => {
+test("send focuses then types text via System Events (no implicit return)", async () => {
   const { scripts, run } = recorder(["found", ""]);
   const b = new AppleScriptBackend("iTerm", "kiro-cli", run);
   await b.send("y");
   expect(scripts.at(-1)).toContain("keystroke");
   expect(scripts.at(-1)).toContain('"y"');
+  expect(scripts.at(-1)).not.toContain("key code 36");
+});
+
+test("send escapes quotes and backslashes in the text", async () => {
+  const { scripts, run } = recorder(["found", ""]);
+  const b = new AppleScriptBackend("iTerm", "kiro-cli", run);
+  await b.send('a"b\\c');
+  expect(scripts.at(-1)).toContain('keystroke "a\\"b\\\\c"');
+});
+
+test("sendKey return maps to key code 36", async () => {
+  const { scripts, run } = recorder(["", ""]);
+  const b = new AppleScriptBackend("iTerm", "kiro-cli", run);
+  await b.sendKey("return");
+  expect(scripts.at(-1)).toContain("key code 36");
 });
 
 test("openTab creates a tab running the command", async () => {

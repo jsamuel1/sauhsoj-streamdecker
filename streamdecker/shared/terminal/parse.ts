@@ -27,8 +27,22 @@ export function parseCurrentSurfaceRef(output: string): string | undefined {
   return undefined;
 }
 
-/** First notification id (uuid) from `cmux list-notifications --json`, or null if none. */
+/**
+ * First notification id from `cmux list-notifications --json`, or null if none.
+ * Prefers the parsed array's first `id` field; falls back to a raw UUID scan for
+ * non-JSON output (e.g. the plain "No notifications" line) or unexpected shapes.
+ */
 export function parseFirstNotificationId(jsonText: string): string | null {
+  try {
+    const parsed = JSON.parse(jsonText);
+    if (Array.isArray(parsed)) {
+      if (parsed.length === 0) return null;
+      const id = parsed[0]?.id;
+      if (typeof id === "string" && UUID.test(id)) return id;
+    }
+  } catch {
+    /* not JSON (e.g. "No notifications") — fall through to regex scan */
+  }
   const m = jsonText.match(UUID);
   return m ? m[0] : null;
 }

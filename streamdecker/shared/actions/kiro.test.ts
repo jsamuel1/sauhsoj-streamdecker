@@ -60,10 +60,10 @@ test("cycleKiroTabs and alertIdleKiro delegate", async () => {
   expect(calls).toEqual(["cycleTab", "nextAlertTab"]);
 });
 
-test("switchAgent sends the agent switch command", async () => {
+test("switchAgent sends the agent switch command and submits it", async () => {
   calls.length = 0;
   await switchAgent("git");
-  expect(calls).toEqual(["send:/agent switch git"]);
+  expect(calls).toEqual(["send:/agent switch git", "sendKey:return"]);
 });
 
 test("launchKiroInFolder opens a tab with cd + kiro-cli chat", async () => {

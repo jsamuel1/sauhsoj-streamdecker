@@ -34,7 +34,7 @@ export class CmuxBackend implements TerminalBackend {
   }
 
   async send(text: string): Promise<void> {
-    await this.run(["send", "--", `${text}\n`]);
+    await this.run(["send", "--", text]);
   }
 
   async sendKey(key: string): Promise<void> {
@@ -44,8 +44,11 @@ export class CmuxBackend implements TerminalBackend {
   async openTab(command: string): Promise<void> {
     const created = await this.run(["new-surface", "--type", "terminal"]);
     const ref = parseSurfaceRefs(created)[0];
-    const target = ref ? ["--surface", ref] : [];
-    await this.run(["send", ...target, "--", `${command}\n`]);
+    if (!ref) {
+      throw new Error(`cmux new-surface did not return a surface ref: ${created}`);
+    }
+    // Trailing newline runs the command in the new surface.
+    await this.run(["send", "--surface", ref, "--", `${command}\n`]);
   }
 
   async nextAlertTab(): Promise<FocusResult> {

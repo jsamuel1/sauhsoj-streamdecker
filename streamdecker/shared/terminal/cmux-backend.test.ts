@@ -27,18 +27,22 @@ test("focus brings cmux to the foreground", async () => {
   expect(calls).toEqual([["set-app-focus", "active"]]);
 });
 
-test("send types text plus newline to the focused surface", async () => {
+test("send types text as raw keystrokes with no implicit newline", async () => {
   const { calls, run } = recorder();
   const b = new CmuxBackend(run);
   await b.send("y");
-  expect(calls).toEqual([["send", "--", "y\n"]]);
+  expect(calls).toEqual([["send", "--", "y"]]);
 });
 
-test("sendKey sends a key event", async () => {
+test("sendKey passes the key through to cmux send-key", async () => {
   const { calls, run } = recorder();
   const b = new CmuxBackend(run);
   await b.sendKey("escape");
-  expect(calls).toEqual([["send-key", "escape"]]);
+  await b.sendKey("return");
+  expect(calls).toEqual([
+    ["send-key", "escape"],
+    ["send-key", "return"],
+  ]);
 });
 
 test("openTab creates a surface then runs the command in it", async () => {
@@ -49,11 +53,10 @@ test("openTab creates a surface then runs the command in it", async () => {
   expect(calls[1]).toEqual(["send", "--surface", "surface:9", "--", "cd /tmp && kiro-cli chat\n"]);
 });
 
-test("openTab falls back to the focused surface if no ref is returned", async () => {
-  const { calls, run } = recorder([""]);
+test("openTab throws if new-surface returns no surface ref (avoids clobbering the current surface)", async () => {
+  const { run } = recorder([""]);
   const b = new CmuxBackend(run);
-  await b.openTab("kiro-cli chat");
-  expect(calls[1]).toEqual(["send", "--", "kiro-cli chat\n"]);
+  expect(b.openTab("kiro-cli chat")).rejects.toThrow(/surface ref/);
 });
 
 test("nextAlertTab opens the first notification, focuses app, returns ok", async () => {

@@ -22,8 +22,8 @@ export interface TerminalBackend {
   nextAlertTab(): Promise<FocusResult>;
   /** Open a new tab/surface running `command`. */
   openTab(command: string): Promise<void>;
-  /** Type text into the focused surface and submit (Enter). */
+  /** Type text into the focused surface as raw keystrokes — no implicit Enter. */
   send(text: string): Promise<void>;
-  /** Send a key event (e.g. "escape", "ctrl+c"). */
+  /** Send a key event (e.g. "escape", "return", "ctrl+c"). */
   sendKey(key: string): Promise<void>;
 }
