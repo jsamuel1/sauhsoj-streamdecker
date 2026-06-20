@@ -1,8 +1,8 @@
 {
   "compilerOptions": {
     "target": "ESNext",
-    "module": "NodeNext",
-    "moduleResolution": "NodeNext",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
     "lib": ["ESNext"],
     "strict": true,
     "esModuleInterop": true,
@@ -11,10 +11,9 @@
     "resolveJsonModule": true,
     "allowSyntheticDefaultImports": true,
     "isolatedModules": true,
-    "types": ["bun-types"],
-    "outDir": "./dist",
-    "rootDir": "./src"
+    "noEmit": true,
+    "types": ["@types/bun"]
   },
-  "include": ["src/**/*", "emulator/**/*"],
+  "include": ["src/**/*", "shared/**/*", "emulator/**/*"],
   "exclude": ["node_modules", "dist"]
 }

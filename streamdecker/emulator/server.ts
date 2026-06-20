@@ -72,7 +72,7 @@ export class EmulatorServer {
         // API: Update config
         if (url.pathname === '/api/config' && req.method === 'PUT') {
           try {
-            const body = await req.json();
+            const body = (await req.json()) as Partial<Config>;
             const updated = updateConfig(body);
             self.onConfigChange?.(updated);
             self.broadcast({ type: 'configChanged', config: updated });
@@ -85,7 +85,7 @@ export class EmulatorServer {
         // API: Check mode switch requirements
         if (url.pathname === '/api/mode/check' && req.method === 'POST') {
           try {
-            const { mode } = await req.json();
+            const { mode } = (await req.json()) as { mode: Config['mode'] };
             const check = await checkModeSwitch(mode);
             return Response.json(check);
           } catch (e) {
@@ -96,7 +96,10 @@ export class EmulatorServer {
         // API: Execute mode switch (start/stop apps, export config)
         if (url.pathname === '/api/mode/switch' && req.method === 'POST') {
           try {
-            const { mode, manageElgatoAutostart } = await req.json();
+            const { mode, manageElgatoAutostart } = (await req.json()) as {
+              mode: Config['mode'];
+              manageElgatoAutostart?: boolean;
+            };
             const currentConfig = getConfig();
             const oldMode = currentConfig.mode;
             

@@ -7,7 +7,7 @@ test("terminal.app accepts cmux", () => {
 });
 
 test("terminal.app still accepts existing terminals and auto", () => {
-  for (const app of ["iTerm", "Terminal", "Warp", "WezTerm", "auto"]) {
+  for (const app of ["iTerm", "Terminal", "Warp", "WezTerm", "auto"] as const) {
     expect(ConfigSchema.parse({ terminal: { app } }).terminal.app).toBe(app);
   }
 });

@@ -21,6 +21,10 @@ jobs:
         working-directory: streamdecker
         run: bun install
 
+      - name: Typecheck
+        working-directory: streamdecker
+        run: bun run typecheck
+
       - name: Run unit tests
         working-directory: streamdecker
         run: bun test

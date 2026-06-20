@@ -10,7 +10,7 @@ import { join } from 'path';
 
 // Import from shared modules
 import { getIconsDir, getFontsDir } from '../shared/config/paths.js';
-import { getConfig, saveConfig, isFirstRun, markFirstRunComplete } from '../shared/config/loader.js';
+import { getConfig, updateConfig, isFirstRun, markFirstRunComplete } from '../shared/config/loader.js';
 import {
   focusKiro,
   cycleKiroTabs,
@@ -378,7 +378,7 @@ async function main() {
   emulator.onDeviceChange = (device) => {
     const cfg = getConfig();
     if (cfg.device.type !== device) {
-      saveConfig({ device: { ...cfg.device, type: device } });
+      updateConfig({ device: { ...cfg.device, type: device } });
       console.log(`[Main] Device type changed to: ${device}`);
     }
   };
@@ -402,7 +402,7 @@ async function main() {
     const detectedType = info.model?.toLowerCase().includes('mini') ? 'mini' : 'neo';
     const cfg = getConfig();
     if (cfg.device.type !== detectedType) {
-      saveConfig({ device: { ...cfg.device, type: detectedType } });
+      updateConfig({ device: { ...cfg.device, type: detectedType } });
       console.log(`[Main] Device type updated to: ${detectedType}`);
     }
     

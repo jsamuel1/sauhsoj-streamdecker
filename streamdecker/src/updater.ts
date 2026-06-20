@@ -49,8 +49,8 @@ export async function checkForUpdate(): Promise<{ available: boolean; current: s
     });
     
     if (!res.ok) return null;
-    
-    const release: Release = await res.json();
+
+    const release = (await res.json()) as Release;
     const latest = release.tag_name.replace(/^v/, '');
     const current = getCurrentVersion();
     
@@ -76,8 +76,8 @@ export async function downloadAndInstall(): Promise<boolean> {
     });
     
     if (!res.ok) return false;
-    
-    const release: Release = await res.json();
+
+    const release = (await res.json()) as Release;
     const dmgAsset = release.assets.find(a => a.name.endsWith('.dmg'));
     
     if (!dmgAsset) {
