@@ -49,7 +49,7 @@ export class AppleScriptBackend implements TerminalBackend {
           repeat with t in tabs of w
             set s to current session of t
             set theTty to tty of s
-            set hasKiro to (do shell script "ps -t " & theTty & " -o command= | grep -q ${cmd} && echo yes || echo no")
+            set hasKiro to (do shell script "ps -t " & theTty & " -o command= | grep -q '${cmd}' && echo yes || echo no")
             if hasKiro is "yes" then
               select t
               return "found"
@@ -76,7 +76,7 @@ export class AppleScriptBackend implements TerminalBackend {
             set idx to ((c + i - 1) mod n) + 1
             set s to current session of tab idx
             set theTty to tty of s
-            set hasKiro to (do shell script "ps -t " & theTty & " -o command= | grep -q ${this.cmd} && echo yes || echo no")
+            set hasKiro to (do shell script "ps -t " & theTty & " -o command= | grep -q '${this.cmd}' && echo yes || echo no")
             if hasKiro is "yes" then
               select tab idx
               return
@@ -102,7 +102,7 @@ export class AppleScriptBackend implements TerminalBackend {
             set idx to ((c + i - 1) mod n) + 1
             set s to current session of tab idx
             set theTty to tty of s
-            set hasKiro to (do shell script "ps -t " & theTty & " -o command= | grep -q ${this.cmd} && echo yes || echo no")
+            set hasKiro to (do shell script "ps -t " & theTty & " -o command= | grep -q '${this.cmd}' && echo yes || echo no")
             if hasKiro is "yes" and is processing of s is false then
               select tab idx
               return
