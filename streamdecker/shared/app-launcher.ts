@@ -21,7 +21,7 @@ const defaultOsa: OsaRunner = async (script) => {
 };
 
 /** Bring a GUI app to the front (launching it if needed). */
-export async function focusApp(appName: string, deps: Pick<LauncherDeps, "open"> = {}): Promise<void> {
+export async function activateApp(appName: string, deps: Pick<LauncherDeps, "open"> = {}): Promise<void> {
   await (deps.open ?? defaultOpen)(appName);
 }
 
@@ -29,6 +29,7 @@ export async function focusApp(appName: string, deps: Pick<LauncherDeps, "open">
 export async function launchApp(target: GuiTarget, deps: LauncherDeps = {}): Promise<void> {
   const open = deps.open ?? defaultOpen;
   const osa = deps.osascript ?? defaultOsa;
+  // The app needs a moment to become frontmost before the ⌘N keystroke, or the keystroke could go to the wrong app.
   const delayMs = deps.delayMs ?? 600;
 
   await open(target.appName);

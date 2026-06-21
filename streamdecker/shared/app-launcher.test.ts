@@ -1,5 +1,5 @@
 import { test, expect } from "bun:test";
-import { launchApp, focusApp } from "./app-launcher.js";
+import { launchApp, activateApp } from "./app-launcher.js";
 import type { GuiTarget } from "./targets.js";
 
 const quick: GuiTarget = {
@@ -18,9 +18,9 @@ function rec() {
   };
 }
 
-test("focusApp only opens the app (no keystroke)", async () => {
+test("activateApp only opens the app (no keystroke)", async () => {
   const r = rec();
-  await focusApp("Amazon Quick", { open: r.open });
+  await activateApp("Amazon Quick", { open: r.open });
   expect(r.opens).toEqual(["Amazon Quick"]);
 });
 
