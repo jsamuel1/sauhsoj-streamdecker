@@ -1,4 +1,5 @@
-export type TargetId = "kiro-cli" | "claude-code" | "amazon-quick" | "claude-app";
+export declare const TARGET_IDS: readonly ["kiro-cli", "claude-code", "amazon-quick", "claude-app"];
+export type TargetId = (typeof TARGET_IDS)[number];
 interface BaseTarget {
     id: TargetId;
     label: string;

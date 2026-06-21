@@ -1,21 +1,27 @@
 import { z } from "zod";
-export declare const ActionId: z.ZodEnum<["kiro.focus", "kiro.cycle", "kiro.alert", "kiro.launch", "kiro.yes", "kiro.no", "kiro.trust", "kiro.agent", "kiro.agent.picker"]>;
+export declare const ActionId: z.ZodEnum<["kiro.focus", "kiro.cycle", "kiro.alert", "kiro.launch", "kiro.yes", "kiro.no", "kiro.trust", "kiro.agent", "kiro.agent.picker", "target.launch", "target.focus"]>;
 export type ActionId = z.infer<typeof ActionId>;
 export declare const ButtonSchema: z.ZodObject<{
     position: z.ZodNumber;
-    action: z.ZodEnum<["kiro.focus", "kiro.cycle", "kiro.alert", "kiro.launch", "kiro.yes", "kiro.no", "kiro.trust", "kiro.agent", "kiro.agent.picker"]>;
+    action: z.ZodEnum<["kiro.focus", "kiro.cycle", "kiro.alert", "kiro.launch", "kiro.yes", "kiro.no", "kiro.trust", "kiro.agent", "kiro.agent.picker", "target.launch", "target.focus"]>;
     icon: z.ZodOptional<z.ZodString>;
     label: z.ZodOptional<z.ZodString>;
+    target: z.ZodOptional<z.ZodEnum<["kiro-cli", "claude-code", "amazon-quick", "claude-app"]>>;
+    folder: z.ZodOptional<z.ZodString>;
 }, "strip", z.ZodTypeAny, {
     position: number;
-    action: "kiro.focus" | "kiro.cycle" | "kiro.alert" | "kiro.launch" | "kiro.yes" | "kiro.no" | "kiro.trust" | "kiro.agent" | "kiro.agent.picker";
+    action: "kiro.focus" | "kiro.cycle" | "kiro.alert" | "kiro.launch" | "kiro.yes" | "kiro.no" | "kiro.trust" | "kiro.agent" | "kiro.agent.picker" | "target.launch" | "target.focus";
     icon?: string | undefined;
     label?: string | undefined;
+    target?: "kiro-cli" | "claude-code" | "amazon-quick" | "claude-app" | undefined;
+    folder?: string | undefined;
 }, {
     position: number;
-    action: "kiro.focus" | "kiro.cycle" | "kiro.alert" | "kiro.launch" | "kiro.yes" | "kiro.no" | "kiro.trust" | "kiro.agent" | "kiro.agent.picker";
+    action: "kiro.focus" | "kiro.cycle" | "kiro.alert" | "kiro.launch" | "kiro.yes" | "kiro.no" | "kiro.trust" | "kiro.agent" | "kiro.agent.picker" | "target.launch" | "target.focus";
     icon?: string | undefined;
     label?: string | undefined;
+    target?: "kiro-cli" | "claude-code" | "amazon-quick" | "claude-app" | undefined;
+    folder?: string | undefined;
 }>;
 export type Button = z.infer<typeof ButtonSchema>;
 export declare const DeviceSchema: z.ZodObject<{
@@ -88,19 +94,25 @@ export declare const ConfigSchema: z.ZodObject<{
     }>>;
     buttons: z.ZodDefault<z.ZodArray<z.ZodObject<{
         position: z.ZodNumber;
-        action: z.ZodEnum<["kiro.focus", "kiro.cycle", "kiro.alert", "kiro.launch", "kiro.yes", "kiro.no", "kiro.trust", "kiro.agent", "kiro.agent.picker"]>;
+        action: z.ZodEnum<["kiro.focus", "kiro.cycle", "kiro.alert", "kiro.launch", "kiro.yes", "kiro.no", "kiro.trust", "kiro.agent", "kiro.agent.picker", "target.launch", "target.focus"]>;
         icon: z.ZodOptional<z.ZodString>;
         label: z.ZodOptional<z.ZodString>;
+        target: z.ZodOptional<z.ZodEnum<["kiro-cli", "claude-code", "amazon-quick", "claude-app"]>>;
+        folder: z.ZodOptional<z.ZodString>;
     }, "strip", z.ZodTypeAny, {
         position: number;
-        action: "kiro.focus" | "kiro.cycle" | "kiro.alert" | "kiro.launch" | "kiro.yes" | "kiro.no" | "kiro.trust" | "kiro.agent" | "kiro.agent.picker";
+        action: "kiro.focus" | "kiro.cycle" | "kiro.alert" | "kiro.launch" | "kiro.yes" | "kiro.no" | "kiro.trust" | "kiro.agent" | "kiro.agent.picker" | "target.launch" | "target.focus";
         icon?: string | undefined;
         label?: string | undefined;
+        target?: "kiro-cli" | "claude-code" | "amazon-quick" | "claude-app" | undefined;
+        folder?: string | undefined;
     }, {
         position: number;
-        action: "kiro.focus" | "kiro.cycle" | "kiro.alert" | "kiro.launch" | "kiro.yes" | "kiro.no" | "kiro.trust" | "kiro.agent" | "kiro.agent.picker";
+        action: "kiro.focus" | "kiro.cycle" | "kiro.alert" | "kiro.launch" | "kiro.yes" | "kiro.no" | "kiro.trust" | "kiro.agent" | "kiro.agent.picker" | "target.launch" | "target.focus";
         icon?: string | undefined;
         label?: string | undefined;
+        target?: "kiro-cli" | "claude-code" | "amazon-quick" | "claude-app" | undefined;
+        folder?: string | undefined;
     }>, "many">>;
     terminal: z.ZodDefault<z.ZodObject<{
         app: z.ZodDefault<z.ZodEnum<["cmux", "iTerm", "Terminal", "Warp", "WezTerm", "auto"]>>;
@@ -167,9 +179,11 @@ export declare const ConfigSchema: z.ZodObject<{
     };
     buttons: {
         position: number;
-        action: "kiro.focus" | "kiro.cycle" | "kiro.alert" | "kiro.launch" | "kiro.yes" | "kiro.no" | "kiro.trust" | "kiro.agent" | "kiro.agent.picker";
+        action: "kiro.focus" | "kiro.cycle" | "kiro.alert" | "kiro.launch" | "kiro.yes" | "kiro.no" | "kiro.trust" | "kiro.agent" | "kiro.agent.picker" | "target.launch" | "target.focus";
         icon?: string | undefined;
         label?: string | undefined;
+        target?: "kiro-cli" | "claude-code" | "amazon-quick" | "claude-app" | undefined;
+        folder?: string | undefined;
     }[];
     launchAtLogin: boolean;
     firstRun: boolean;
@@ -199,9 +213,11 @@ export declare const ConfigSchema: z.ZodObject<{
     } | undefined;
     buttons?: {
         position: number;
-        action: "kiro.focus" | "kiro.cycle" | "kiro.alert" | "kiro.launch" | "kiro.yes" | "kiro.no" | "kiro.trust" | "kiro.agent" | "kiro.agent.picker";
+        action: "kiro.focus" | "kiro.cycle" | "kiro.alert" | "kiro.launch" | "kiro.yes" | "kiro.no" | "kiro.trust" | "kiro.agent" | "kiro.agent.picker" | "target.launch" | "target.focus";
         icon?: string | undefined;
         label?: string | undefined;
+        target?: "kiro-cli" | "claude-code" | "amazon-quick" | "claude-app" | undefined;
+        folder?: string | undefined;
     }[] | undefined;
     theme?: {
         accentColor?: string | undefined;

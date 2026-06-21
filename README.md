@@ -83,8 +83,27 @@ Config stored in `~/.config/streamdecker/config.json`:
 - `mode` - standalone, elgato, or btt
 - `device.type` - neo, mini, or og
 - `terminal.app` - `cmux`, `iTerm`, `Terminal`, `Warp`, `WezTerm`, or `auto` (default)
+- `buttons` - per-key layout for the standalone app (see below)
 - `agents.favorites` - Favorite agents for quick access
 - `agents.shortcuts` - Keyboard shortcuts per agent
+
+### Buttons (standalone)
+
+The standalone app renders and dispatches its Stream Deck keys from `config.buttons`
+(defaults applied if unset). Each entry is:
+
+- `position` - key index (0-based)
+- `action` - one of `kiro.focus`, `kiro.cycle`, `kiro.alert`, `kiro.launch`,
+  `kiro.yes`, `kiro.no`, `kiro.trust`, `kiro.agent`, `kiro.agent.picker`,
+  `target.launch`, `target.focus`
+- `icon` / `label` - optional overrides (otherwise derived from the action/target)
+- `target` - for `target.launch`/`target.focus`: `kiro-cli`, `claude-code`,
+  `amazon-quick`, or `claude-app`
+- `folder` - for `target.launch` terminal targets: a project dir to `cd` into
+
+Edit buttons in the emulator (gear → Settings → **Buttons**) or by hand in
+`config.json`. `target.launch` opens a new session; `target.focus` brings the
+target to the front.
 
 ### Terminal backend
 
