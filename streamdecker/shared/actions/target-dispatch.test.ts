@@ -56,5 +56,5 @@ test("folder is ignored for gui targets", async () => {
 });
 
 test("unknown target throws", async () => {
-  expect(launchTarget("nope" as never)).rejects.toThrow(/Unknown target/);
+  await expect(launchTarget("nope" as never)).rejects.toThrow(/Unknown target/);
 });
