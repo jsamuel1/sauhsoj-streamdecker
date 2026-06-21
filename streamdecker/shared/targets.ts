@@ -1,4 +1,5 @@
-export type TargetId = "kiro-cli" | "claude-code" | "amazon-quick" | "claude-app";
+export const TARGET_IDS = ["kiro-cli", "claude-code", "amazon-quick", "claude-app"] as const;
+export type TargetId = (typeof TARGET_IDS)[number];
 
 interface BaseTarget {
   id: TargetId;

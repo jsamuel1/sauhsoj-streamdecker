@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { TARGET_IDS } from "../targets.js";
 
 // Action IDs available in the system
 export const ActionId = z.enum([
@@ -11,6 +12,8 @@ export const ActionId = z.enum([
   "kiro.trust",
   "kiro.agent",
   "kiro.agent.picker",
+  "target.launch",
+  "target.focus",
 ]);
 
 export type ActionId = z.infer<typeof ActionId>;
@@ -21,6 +24,8 @@ export const ButtonSchema = z.object({
   action: ActionId,
   icon: z.string().optional(),
   label: z.string().optional(),
+  target: z.enum(TARGET_IDS).optional(),
+  folder: z.string().optional(),
 });
 
 export type Button = z.infer<typeof ButtonSchema>;
