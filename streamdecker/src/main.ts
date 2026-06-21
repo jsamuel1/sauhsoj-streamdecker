@@ -68,8 +68,14 @@ const ActionRegistry: Record<string, (button: Button) => Promise<void>> = {
   'kiro.yes': async () => { await sendYes(); },
   'kiro.no': async () => { await sendNo(); },
   'kiro.trust': async () => { await sendTrust(); },
-  'target.launch': async (b) => { if (b.target) await launchTarget(b.target, b.folder || undefined); },
-  'target.focus': async (b) => { if (b.target) await focusTarget(b.target); },
+  'target.launch': async (b) => {
+    if (b.target) await launchTarget(b.target, b.folder || undefined);
+    else console.warn('[Main] target.launch button has no target configured');
+  },
+  'target.focus': async (b) => {
+    if (b.target) await focusTarget(b.target);
+    else console.warn('[Main] target.focus button has no target configured');
+  },
 };
 
 function getRecentAgents(maxCount: number): string[] {
@@ -297,8 +303,7 @@ async function initButtons(sendToDevice: boolean = true) {
 
 async function showAgentPage() {
   currentPage = 'agents';
-  const config = getConfig();
-  const maxButtons = config.device.type === 'mini' ? 6 : 8;
+  const maxButtons = deviceSlots();
   agentList = getRecentAgents(maxButtons);
   
   for (let i = 0; i < maxButtons; i++) {
