@@ -1,7 +1,8 @@
 import { getTarget } from "../shared/targets.js";
 import type { Button } from "../shared/config/schema.js";
+import type { ActionId } from "../shared/config/schema.js";
 
-const ACTION_DEFAULTS: Record<string, { icon: string; label: string }> = {
+const ACTION_DEFAULTS: Partial<Record<ActionId, { icon: string; label: string }>> = {
   "kiro.focus": { icon: "kiro-focus", label: "Focus" },
   "kiro.cycle": { icon: "kiro-cycle", label: "Cycle" },
   "kiro.alert": { icon: "kiro-alert", label: "Alert" },

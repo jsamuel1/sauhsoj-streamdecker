@@ -36,3 +36,18 @@ test("buttonsByPosition: orders by position and fills gaps with null", () => {
   expect(arr[2]?.action).toBe("kiro.no");
   expect(arr[3]).toBeNull();
 });
+
+test("resolveButtonLabel: target.focus derives the target label", () => {
+  expect(resolveButtonLabel(b({ action: "target.focus", target: "claude-app" }))).toBe("Claude");
+});
+
+test("resolveButtonLabel: target action with no target falls through to empty string", () => {
+  expect(resolveButtonLabel(b({ action: "target.launch" }))).toBe("");
+});
+
+test("buttonsByPosition: ignores out-of-range positions", () => {
+  const arr = buttonsByPosition([b({ position: 9, action: "kiro.no" }), b({ position: 0, action: "kiro.yes" })], 4);
+  expect(arr.length).toBe(4);
+  expect(arr[0]?.action).toBe("kiro.yes");
+  expect(arr.filter(Boolean).length).toBe(1);
+});
