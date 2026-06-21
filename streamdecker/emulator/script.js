@@ -6,6 +6,9 @@ let detectedDevice = null;
 let isConnected = false;
 let config = null;
 
+const ACTION_IDS = ['kiro.focus','kiro.cycle','kiro.alert','kiro.launch','kiro.yes','kiro.no','kiro.trust','kiro.agent','kiro.agent.picker','target.launch','target.focus'];
+const TARGET_IDS = ['kiro-cli','claude-code','amazon-quick','claude-app'];
+
 const buttonLabels = ['Focus', 'Cycle', 'Alert', 'Launch', 'Yes', 'No', 'Trust', 'Agent'];
 
 function renderButtonActions(cfg) {
@@ -18,6 +21,79 @@ function renderButtonActions(cfg) {
     const miniEl = document.getElementById(`mini-action-${i}`);
     if (miniEl) miniEl.textContent = action;
   }
+}
+
+function renderButtonEditor(cfg) {
+  const slots = cfg?.device?.type === 'mini' ? 6 : 8;
+  const byPos = {};
+  (cfg?.buttons || []).forEach(b => { byPos[b.position] = b; });
+  const host = document.getElementById('button-editor');
+  if (!host) return;
+  host.innerHTML = '';
+  for (let i = 0; i < slots; i++) {
+    const b = byPos[i] || { position: i, action: 'kiro.focus' };
+    const isTarget = b.action === 'target.launch' || b.action === 'target.focus';
+
+    const row = document.createElement('div');
+    row.className = 'button-row';
+    row.dataset.position = String(i);
+
+    const posLabel = document.createElement('span');
+    posLabel.className = 'b-pos';
+    posLabel.textContent = `#${i}`;
+    row.appendChild(posLabel);
+
+    const actionSel = document.createElement('select');
+    actionSel.className = 'b-action';
+    ACTION_IDS.forEach(a => {
+      const opt = document.createElement('option');
+      opt.value = a;
+      opt.textContent = a;
+      opt.selected = a === b.action;
+      actionSel.appendChild(opt);
+    });
+    row.appendChild(actionSel);
+
+    const targetSel = document.createElement('select');
+    targetSel.className = 'b-target';
+    targetSel.style.display = isTarget ? '' : 'none';
+    TARGET_IDS.forEach(t => {
+      const opt = document.createElement('option');
+      opt.value = t;
+      opt.textContent = t;
+      opt.selected = t === b.target;
+      targetSel.appendChild(opt);
+    });
+    row.appendChild(targetSel);
+
+    const folderInput = document.createElement('input');
+    folderInput.className = 'b-folder';
+    folderInput.placeholder = 'folder (launch)';
+    folderInput.value = b.folder || '';
+    folderInput.style.display = b.action === 'target.launch' ? '' : 'none';
+    row.appendChild(folderInput);
+
+    actionSel.addEventListener('change', (e) => {
+      const v = e.target.value;
+      targetSel.style.display = (v === 'target.launch' || v === 'target.focus') ? '' : 'none';
+      folderInput.style.display = (v === 'target.launch') ? '' : 'none';
+    });
+
+    host.appendChild(row);
+  }
+}
+
+function collectButtons() {
+  return [...document.querySelectorAll('#button-editor .button-row')].map(row => {
+    const action = row.querySelector('.b-action').value;
+    const out = { position: Number(row.dataset.position), action };
+    if (action === 'target.launch' || action === 'target.focus') {
+      out.target = row.querySelector('.b-target').value;
+      const f = row.querySelector('.b-folder').value.trim();
+      if (action === 'target.launch' && f) out.folder = f;
+    }
+    return out;
+  });
 }
 
 // Config management
@@ -58,7 +134,9 @@ function populateSettingsForm() {
   form.favoriteAgents.value = (config.agents?.favorites || []).join(', ');
   form.accentColor.value = config.theme?.accentColor || '#9046ff';
   form.launchAtLogin.checked = config.launchAtLogin !== false;
-  
+
+  renderButtonEditor(config);
+
   // Show/hide Elgato actions
   const elgatoActions = document.getElementById('elgato-actions');
   elgatoActions.style.display = config.mode === 'elgato' ? 'block' : 'none';
@@ -75,7 +153,8 @@ function getFormConfig() {
     terminal: { app: form.terminalApp.value },
     agents: { favorites: form.favoriteAgents.value.split(',').map(s => s.trim()).filter(Boolean) },
     theme: { accentColor: form.accentColor.value },
-    launchAtLogin: form.launchAtLogin.checked
+    launchAtLogin: form.launchAtLogin.checked,
+    buttons: collectButtons()
   };
 }
 

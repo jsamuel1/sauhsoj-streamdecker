@@ -376,3 +376,9 @@ h1 {
 .action-btn:hover {
   background: var(--purple);
 }
+
+
+/* Per-button editor */
+.button-row { display: flex; gap: 6px; align-items: center; margin: 4px 0; }
+.button-row .b-pos { width: 28px; color: #888; font-size: 12px; }
+.button-row select, .button-row input { flex: 1; min-width: 0; }
