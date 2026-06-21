@@ -40,7 +40,8 @@ export class AppleScriptBackend implements TerminalBackend {
     }
   }
 
-  async focus(): Promise<FocusResult> {
+  async focus(detectCommand?: string): Promise<FocusResult> {
+    const cmd = detectCommand ?? this.cmd;
     const result = await this.run(`
       tell application "${this.name}"
         activate
@@ -48,7 +49,7 @@ export class AppleScriptBackend implements TerminalBackend {
           repeat with t in tabs of w
             set s to current session of t
             set theTty to tty of s
-            set hasKiro to (do shell script "ps -t " & theTty & " -o command= | grep -q ${this.cmd} && echo yes || echo no")
+            set hasKiro to (do shell script "ps -t " & theTty & " -o command= | grep -q ${cmd} && echo yes || echo no")
             if hasKiro is "yes" then
               select t
               return "found"

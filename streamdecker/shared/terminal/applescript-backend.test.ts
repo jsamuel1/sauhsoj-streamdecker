@@ -87,3 +87,11 @@ test("sendKey maps ctrl combos to keystroke using control down", async () => {
   expect(scripts.at(-1)).toContain("control down");
   expect(scripts.at(-1)).toContain('"c"');
 });
+
+test("focus(detectCommand) scans for the given command, not the default", async () => {
+  const { scripts, run } = recorder(["found"]);
+  const b = new AppleScriptBackend("iTerm", "kiro-cli", run);
+  await b.focus("claude");
+  expect(scripts[0]).toContain("claude");
+  expect(scripts[0]).not.toContain("kiro-cli");
+});

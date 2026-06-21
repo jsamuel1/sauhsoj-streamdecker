@@ -28,7 +28,7 @@ export class CmuxBackend implements TerminalBackend {
     return true; // cmux uses its control socket; no AppleScript automation prompt
   }
 
-  async focus(): Promise<FocusResult> {
+  async focus(_detectCommand?: string): Promise<FocusResult> {
     await this.run(["set-app-focus", "active"]);
     return "ok";
   }

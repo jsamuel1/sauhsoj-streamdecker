@@ -14,8 +14,8 @@ export interface TerminalBackend {
   readonly name: BackendName;
   /** AppleScript automation permission probe; cmux has none, returns true. */
   checkPermission(): Promise<boolean>;
-  /** Bring the kiro terminal to the foreground. */
-  focus(): Promise<FocusResult>;
+  /** Bring the kiro terminal to the foreground (optionally for a specific command). */
+  focus(detectCommand?: string): Promise<FocusResult>;
   /** Switch to the next tab/surface. */
   cycleTab(): Promise<FocusResult>;
   /** Jump to the tab/surface needing attention. */
