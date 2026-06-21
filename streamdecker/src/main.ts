@@ -24,6 +24,9 @@ import {
   launchKiroWithPicker,
 } from '../shared/actions/kiro.js';
 import { focusApp, sendKeystroke } from '../shared/actions/terminal.js';
+import { buttonsByPosition, resolveButtonIcon, resolveButtonLabel } from './buttons.js';
+import { launchTarget, focusTarget } from '../shared/actions/target-dispatch.js';
+import type { Button } from '../shared/config/schema.js';
 
 const ICONS_DIR = getIconsDir();
 const FONT_PATH = join(getFontsDir(), 'Nunito-ExtraBold.ttf');
@@ -36,32 +39,13 @@ type Page = 'main' | 'agents';
 let currentPage: Page = 'main';
 let agentList: string[] = [];
 
-// Button layout matching BTT: row 1 (top 0-3), row 2 (bottom 4-7)
-// BTT: row=1 col=1-4 is top row, row=2 col=1-4 is bottom row
-// Stream Deck Neo: indices 0-3 top row (L-R), 4-7 bottom row (L-R)
-const buttonActions = [
-  'kiro.focus',    // 0 - top left (Focus)
-  'kiro.cycle',    // 1 - (Cycle)
-  'kiro.alert',    // 2 - (Alert)
-  'kiro.launch',   // 3 - top right (Launch)
-  'kiro.yes',      // 4 - bottom left (Yes)
-  'kiro.no',       // 5 - (No)
-  'kiro.thinking', // 6 - (Trust/Thinking)
-  'kiro.agent',    // 7 - bottom right (Agent)
-];
+function deviceSlots(): number {
+  return getConfig().device.type === 'mini' ? 6 : 8;
+}
 
-const buttonIcons = [
-  'kiro-focus-96.png',
-  'kiro-cycle-96.png',
-  'kiro-alert-96.png',
-  'kiro-launch-96.png',
-  'kiro-yes-96.png',
-  'kiro-no-96.png',
-  'kiro-trust-96.png',
-  'kiro-agent-96.png',
-];
-
-const buttonLabels = ['Focus', 'Cycle', 'Alert', 'Launch', 'Yes', 'No', 'Trust', 'Agent'];
+function currentButtons(): (Button | null)[] {
+  return buttonsByPosition(getConfig().buttons, deviceSlots());
+}
 
 let emulator: EmulatorServer | null = null;
 let infoBarSourceIndex = 0;
@@ -76,15 +60,16 @@ const LONG_PRESS_MS = 500;
 let launchButtonDownTime: number | null = null;
 
 // Action registry for button presses (short press)
-const ActionRegistry: Record<string, () => Promise<void>> = {
+const ActionRegistry: Record<string, (button: Button) => Promise<void>> = {
   'kiro.focus': async () => { await focusKiro(); },
-  'kiro.cycle': cycleKiroTabs,
-  'kiro.alert': alertIdleKiro,
-  'kiro.launch': launchKiroWithPicker,  // Default: picker
-  'kiro.yes': sendYes,
-  'kiro.no': sendNo,
-  'kiro.thinking': sendTrust,
-  'app.iterm': () => focusApp('iTerm'),
+  'kiro.cycle': async () => { await cycleKiroTabs(); },
+  'kiro.alert': async () => { await alertIdleKiro(); },
+  'kiro.launch': async () => { await launchKiroWithPicker(); },
+  'kiro.yes': async () => { await sendYes(); },
+  'kiro.no': async () => { await sendNo(); },
+  'kiro.trust': async () => { await sendTrust(); },
+  'target.launch': async (b) => { if (b.target) await launchTarget(b.target, b.folder || undefined); },
+  'target.focus': async (b) => { if (b.target) await focusTarget(b.target); },
 };
 
 function getRecentAgents(maxCount: number): string[] {
@@ -120,21 +105,27 @@ async function renderAgentButton(name: string): Promise<Buffer> {
   return sharp(pngBuffer).removeAlpha().raw().toBuffer();
 }
 
-async function loadButtonIcon(index: number): Promise<Buffer | null> {
-  const iconName = buttonIcons[index];
+async function loadButtonIcon(button: Button | null): Promise<Buffer | null> {
+  if (!button) return null;
+
+  const iconName = resolveButtonIcon(button);
   if (!iconName) return null;
-  
-  const iconPath = join(ICONS_DIR, iconName);
+
+  // Try <iconName>-96.png first, then <iconName>.png
+  let iconPath = join(ICONS_DIR, `${iconName}-96.png`);
   if (!existsSync(iconPath)) {
-    console.log(`[Main] Icon not found: ${iconPath}`);
-    return null;
+    iconPath = join(ICONS_DIR, `${iconName}.png`);
+    if (!existsSync(iconPath)) {
+      console.log(`[Main] Icon not found: ${iconName}`);
+      return null;
+    }
   }
-  
-  const label = buttonLabels[index];
-  
+
+  const label = resolveButtonLabel(button);
+
   // Load icon and add label at bottom
   const icon = sharp(iconPath).resize(96, 96);
-  
+
   // Create label overlay using canvas with custom font
   const canvas = createCanvas(96, 96);
   const ctx = canvas.getContext('2d');
@@ -146,16 +137,16 @@ async function loadButtonIcon(index: number): Promise<Buffer | null> {
   // Text
   ctx.fillStyle = 'white';
   ctx.fillText(label, 48, 88);
-  
+
   const labelBuffer = canvas.toBuffer('image/png');
-  
+
   // Composite label onto icon
   const buffer = await icon
     .composite([{ input: labelBuffer, top: 0, left: 0 }])
     .removeAlpha()
     .raw()
     .toBuffer();
-  
+
   return buffer;
 }
 
@@ -187,14 +178,16 @@ async function showInfoBarMessage(text: string, color: string = '#9046ff', durat
 
 async function handleButtonDown(index: number) {
   console.log(`[Main] Button ${index} pressed (page: ${currentPage})`);
-  
-  // Track launch button for long-press
-  const actionId = buttonActions[index];
+
+  const slot = currentButtons()[index];
+  const actionId = slot?.action;
+
+  // Track launch button for long-press (only on main page)
   if (actionId === 'kiro.launch' && currentPage === 'main') {
     launchButtonDownTime = Date.now();
     return; // Wait for button up
   }
-  
+
   if (currentPage === 'agents') {
     // Agent page - select agent and return to main
     const agentName = agentList[index];
@@ -202,7 +195,7 @@ async function handleButtonDown(index: number) {
       console.log(`[Main] Switching to agent: ${agentName}`);
       await showMainPage();
       await showInfoBarMessage(`→ Agent [${agentName}]`);
-      
+
       // Check for keyboard shortcut in config
       const config = getConfig();
       const shortcut = config.agents.shortcuts?.[agentName];
@@ -216,17 +209,19 @@ async function handleButtonDown(index: number) {
     }
     return;
   }
-  
+
   // Main page
-  if (actionId === 'kiro.agent') {
+  if (actionId === 'kiro.agent' || actionId === 'kiro.agent.picker') {
     await showAgentPage();
     return;
   }
-  
+
+  if (!slot || !actionId) return;
+
   const action = ActionRegistry[actionId];
   if (action) {
     try {
-      await action();
+      await action(slot);
     } catch (e) {
       console.error(`[Main] Action failed:`, e);
     }
@@ -234,13 +229,14 @@ async function handleButtonDown(index: number) {
 }
 
 async function handleButtonUp(index: number) {
-  const actionId = buttonActions[index];
-  
+  const slot = currentButtons()[index];
+  const actionId = slot?.action;
+
   // Handle launch button long-press
   if (actionId === 'kiro.launch' && launchButtonDownTime !== null) {
     const pressDuration = Date.now() - launchButtonDownTime;
     launchButtonDownTime = null;
-    
+
     try {
       if (pressDuration >= LONG_PRESS_MS) {
         // Long press: launch in last used folder
@@ -280,13 +276,14 @@ async function handlePageRight() {
 }
 
 async function initButtons(sendToDevice: boolean = true) {
-  for (let i = 0; i < 8; i++) {
-    const buffer = await loadButtonIcon(i);
+  const slots = currentButtons();
+  for (let i = 0; i < slots.length; i++) {
+    const buffer = await loadButtonIcon(slots[i]);
     if (buffer) {
       if (sendToDevice) {
         await deckConnection.setButtonImage(i, buffer);
       }
-      
+
       // Also send to emulator as PNG base64
       const pngBuffer = await sharp(buffer, { raw: { width: 96, height: 96, channels: 3 } })
         .png()
@@ -382,6 +379,7 @@ async function main() {
       console.log(`[Main] Device type changed to: ${device}`);
     }
   };
+  emulator.onConfigChange = async () => { await showMainPage(); };
   emulator.onModeSwitch = async (newMode, oldMode) => {
     console.log(`[Main] Mode switch: ${oldMode} -> ${newMode}`);
     if (oldMode === 'standalone' && newMode !== 'standalone') {
