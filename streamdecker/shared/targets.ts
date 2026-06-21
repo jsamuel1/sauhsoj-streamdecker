@@ -24,27 +24,45 @@ export type LaunchTarget = TerminalTarget | GuiTarget;
 
 export const TARGETS: Record<TargetId, LaunchTarget> = {
   "kiro-cli": {
-    id: "kiro-cli", label: "Kiro", kind: "terminal",
-    command: "kiro-cli chat", detectCommand: "kiro-cli",
-    launchIcon: "kiro-launch", focusIcon: "kiro-focus",
+    id: "kiro-cli",
+    label: "Kiro",
+    kind: "terminal",
+    command: "kiro-cli chat",
+    detectCommand: "kiro-cli",
+    launchIcon: "kiro-launch",
+    focusIcon: "kiro-focus",
   },
   "claude-code": {
-    id: "claude-code", label: "Claude Code", kind: "terminal",
-    command: "claude", detectCommand: "claude",
-    launchIcon: "claude-code-launch", focusIcon: "claude-code-focus",
+    id: "claude-code",
+    label: "Claude Code",
+    kind: "terminal",
+    command: "claude",
+    detectCommand: "claude",
+    launchIcon: "claude-code-launch",
+    focusIcon: "claude-code-focus",
   },
   "amazon-quick": {
-    id: "amazon-quick", label: "Quick", kind: "gui",
-    appName: "Amazon Quick", bundleId: "com.amazon.QuickWork.mac", newSession: "cmd-n",
-    launchIcon: "amazon-quick-launch", focusIcon: "amazon-quick-focus",
+    id: "amazon-quick",
+    label: "Quick",
+    kind: "gui",
+    appName: "Amazon Quick",
+    bundleId: "com.amazon.QuickWork.mac",
+    newSession: "cmd-n",
+    launchIcon: "amazon-quick-launch",
+    focusIcon: "amazon-quick-focus",
   },
   "claude-app": {
-    id: "claude-app", label: "Claude", kind: "gui",
-    appName: "Claude", bundleId: "com.anthropic.claudefordesktop", newSession: "cmd-n",
-    launchIcon: "claude-app-launch", focusIcon: "claude-app-focus",
+    id: "claude-app",
+    label: "Claude",
+    kind: "gui",
+    appName: "Claude",
+    bundleId: "com.anthropic.claudefordesktop",
+    newSession: "cmd-n",
+    launchIcon: "claude-app-launch",
+    focusIcon: "claude-app-focus",
   },
 };
 
 export function getTarget(id: string): LaunchTarget | undefined {
-  return (TARGETS as Record<string, LaunchTarget>)[id];
+  return id in TARGETS ? TARGETS[id as TargetId] : undefined;
 }
