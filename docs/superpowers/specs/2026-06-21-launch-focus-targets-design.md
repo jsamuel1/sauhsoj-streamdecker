@@ -83,6 +83,10 @@ export type LaunchTarget =
       newSession: "cmd-n" | "none"; // how Launch starts a new conversation
     };
 
+// Plus, on every target, icon base-names used by the actions to set the key image:
+//   launchIcon: string;  focusIcon: string;
+// kiro-cli reuses the existing "kiro-launch" / "kiro-focus".
+
 export type TerminalTarget = Extract<LaunchTarget, { kind: "terminal" }>;
 export type GuiTarget = Extract<LaunchTarget, { kind: "gui" }>;
 
@@ -157,6 +161,43 @@ compatibility (kiro-cli is also reachable via the new generalized action).
 - The emulator config UI lets a button pick its target (dropdown) — minimal
   addition mirroring existing button config.
 
+## Icons
+
+New per-target button icons, generated in the existing **house style** (purple
+ghost mascot) but visually themed after each product, via the repo's icon
+pipeline (**Amazon Titan Image Generator v2** on Bedrock, `us-west-2`, per
+`scripts/generate-icons.md`).
+
+**Prerequisite (implementation-time):** valid AWS credentials with Bedrock access
+to the Titan image model, plus `boto3` + `Pillow` (installable via `uv`). This
+machine currently has no AWS auth configured, so the icon-generation task is gated
+on the user authenticating; it does not block the code tasks.
+
+**Assets needed** (kiro-cli reuses existing `kiro-launch`/`kiro-focus`):
+
+| target | launch icon | focus icon |
+|---|---|---|
+| `claude-code` | `claude-code-launch` | `claude-code-focus` |
+| `amazon-quick` | `amazon-quick-launch` | `amazon-quick-focus` |
+| `claude-app` | `claude-app-launch` | `claude-app-focus` |
+
+- Sizes/format follow the existing convention: `<name>.png` (72), `<name>-96.png`,
+  `<name>-144.png`, written to `shared/icons/` and copied into the plugin's
+  `wtf.sauhsoj.streamdecker.sdPlugin/imgs/`.
+- **Prompts** extend the base template ("A cute purple ghost mascot character
+  {description}. Dark navy background #1a1a2e. Purple body #9b7ed9, pink cheeks…")
+  with product cues, e.g.:
+  - claude-code — "…holding a glowing terminal prompt, with a warm clay-orange
+    Anthropic-style accent" (launch adds a small rocket; focus adds a focus-ring/eye).
+  - amazon-quick — "…with an orange lightning/spark motif evoking the Amazon Quick
+    mark."
+  - claude-app — "…hugging a rounded clay-orange chat bubble (Claude desktop)."
+- Launch vs focus variants differ by an action glyph (launch ▶/rocket, focus
+  ⌖/focus-ring), matching how `kiro-launch` vs `kiro-focus` differ today.
+- The Elgato actions and standalone renderer call `setImage`/render using the
+  target's `launchIcon`/`focusIcon` base-name resolved through the existing
+  `resolveIcon()` path.
+
 ## Error handling
 
 - Unknown/missing target id → action shows a Stream Deck alert (`showAlert`) and
@@ -184,5 +225,6 @@ compatibility (kiro-cli is also reachable via the new generalized action).
 
 - Picker-page selection UI.
 - GUI deep-link routes (kept as a future drop-in via the registry).
-- Per-target custom icons beyond reusing existing launch/focus icons.
 - cmux per-surface focus-by-command (cmux Focus stays app-level).
+- Generated app-icon (.icns) changes for the bundle; only Stream Deck button
+  icons are produced.
