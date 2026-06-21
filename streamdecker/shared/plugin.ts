@@ -11,6 +11,8 @@ import { KiroStatusAction } from "./actions/kiro-status.js";
 import { SendYesAction } from "./actions/send-yes.js";
 import { SendNoAction } from "./actions/send-no.js";
 import { SendThinkingAction } from "./actions/send-thinking.js";
+import { LaunchTargetAction } from "./actions/launch-target.js";
+import { FocusTargetAction } from "./actions/focus-target.js";
 import { setActiveTerminal } from "./kiro-utils.js";
 
 // Register all actions
@@ -25,6 +27,8 @@ streamDeck.actions.registerAction(new KiroStatusAction());
 streamDeck.actions.registerAction(new SendYesAction());
 streamDeck.actions.registerAction(new SendNoAction());
 streamDeck.actions.registerAction(new SendThinkingAction());
+streamDeck.actions.registerAction(new LaunchTargetAction());
+streamDeck.actions.registerAction(new FocusTargetAction());
 
 // Monitor terminal apps
 streamDeck.system.onApplicationDidLaunch((ev) => {
