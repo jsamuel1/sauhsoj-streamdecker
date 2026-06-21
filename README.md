@@ -103,6 +103,19 @@ explicitly to force one.
 Design and implementation notes live under
 [`docs/superpowers/`](docs/superpowers/).
 
+### Launch / Focus targets (Elgato plugin)
+
+Two configurable actions let a key launch or focus one of several targets, chosen
+per key in the property inspector:
+
+- **kiro-cli** and **Claude Code** — terminal targets. **Launch** opens a new tab
+  (a new session), optionally `cd`-ing into a configured folder; **Focus** brings
+  the tab running that command to the front.
+- **Amazon Quick** and **Claude** (desktop apps) — GUI targets. **Launch** opens
+  the app and starts a new conversation by sending ⌘N; **Focus** just brings the
+  app to the front. The ⌘N step needs macOS Accessibility permission for the
+  controlling app (System Settings → Privacy & Security → Accessibility).
+
 ## Icons
 
 Generated using Amazon Nova Canvas via Bedrock. Kiro ghost mascot from [kiro.dev](https://kiro.dev).
