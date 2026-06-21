@@ -297,6 +297,18 @@ async function initButtons(sendToDevice: boolean = true) {
       const b64 = pngBuffer.toString('base64');
       buttonImageCache.set(i, b64);
       emulator?.sendButtonImage(i, b64);
+    } else {
+      // Empty/unresolved slot - render a blank dark tile to clear any stale image
+      const blank = await sharp({
+        create: { width: 96, height: 96, channels: 3, background: { r: 24, g: 24, b: 27 } }
+      }).raw().toBuffer();
+      if (sendToDevice) await deckConnection.setButtonImage(i, blank);
+      const pngBuffer = await sharp(blank, { raw: { width: 96, height: 96, channels: 3 } })
+        .png()
+        .toBuffer();
+      const b64 = pngBuffer.toString('base64');
+      buttonImageCache.set(i, b64);
+      emulator?.sendButtonImage(i, b64);
     }
   }
 }
