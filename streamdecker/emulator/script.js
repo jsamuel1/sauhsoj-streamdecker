@@ -9,15 +9,14 @@ let config = null;
 const buttonLabels = ['Focus', 'Cycle', 'Alert', 'Launch', 'Yes', 'No', 'Trust', 'Agent'];
 
 function renderButtonActions(cfg) {
-  const slots = cfg.device?.type === 'mini' ? 6 : 8;
-  const byPos = new Array(slots).fill(null);
-  (cfg.buttons || []).forEach(b => { if (b.position >= 0 && b.position < slots) byPos[b.position] = b; });
+  const byPos = {};
+  (cfg?.buttons || []).forEach(b => { byPos[b.position] = b; });
   for (let i = 0; i < 8; i++) {
-    const label = (i < slots && byPos[i]) ? byPos[i].action : '';
+    const action = byPos[i] ? byPos[i].action : '';
     const el = document.getElementById(`action-${i}`);
-    if (el) el.textContent = label;
+    if (el) el.textContent = action;
     const miniEl = document.getElementById(`mini-action-${i}`);
-    if (miniEl) miniEl.textContent = label;
+    if (miniEl) miniEl.textContent = action;
   }
 }
 
