@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Launch Target</title>
+  <link rel="stylesheet" href="https://sdpi-components.dev/releases/v3/sdpi-components.css" />
+  <script src="https://sdpi-components.dev/releases/v3/sdpi-components.js"></script>
+</head>
+<body>
+  <sdpi-item label="Target">
+    <sdpi-select setting="target" default="kiro-cli">
+      <option value="kiro-cli">Kiro</option>
+      <option value="claude-code">Claude Code</option>
+      <option value="amazon-quick">Amazon Quick</option>
+      <option value="claude-app">Claude</option>
+    </sdpi-select>
+  </sdpi-item>
+  <sdpi-item label="Folder (terminal only)">
+    <sdpi-textfield setting="folder" placeholder="/path/to/project"></sdpi-textfield>
+  </sdpi-item>
+</body>
+</html>

@@ -4,7 +4,7 @@ export declare class CmuxBackend implements TerminalBackend {
     private run;
     constructor(runner?: CmuxRunner);
     checkPermission(): Promise<boolean>;
-    focus(): Promise<FocusResult>;
+    focus(_detectCommand?: string): Promise<FocusResult>;
     send(text: string): Promise<void>;
     sendKey(key: string): Promise<void>;
     openTab(command: string): Promise<void>;

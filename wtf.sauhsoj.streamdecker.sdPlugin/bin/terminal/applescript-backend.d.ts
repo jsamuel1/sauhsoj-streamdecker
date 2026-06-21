@@ -6,7 +6,7 @@ export declare class AppleScriptBackend implements TerminalBackend {
     private run;
     constructor(app: Exclude<BackendName, "cmux">, detectCommand: string, runner?: AppleScriptRunner);
     checkPermission(): Promise<boolean>;
-    focus(): Promise<FocusResult>;
+    focus(detectCommand?: string): Promise<FocusResult>;
     cycleTab(): Promise<FocusResult>;
     nextAlertTab(): Promise<FocusResult>;
     openTab(command: string): Promise<void>;

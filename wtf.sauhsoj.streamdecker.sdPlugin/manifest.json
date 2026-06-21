@@ -66,6 +66,24 @@
       ]
     },
     {
+      "UUID": "wtf.sauhsoj.streamdecker.launch-target",
+      "Name": "Launch Target",
+      "Icon": "imgs/actions/focus-kiro/icon",
+      "Tooltip": "Launch a new session of kiro-cli, Claude Code, Amazon Quick, or Claude",
+      "PropertyInspectorPath": "ui/launch-target.html",
+      "Controllers": ["Keypad"],
+      "States": [{ "Image": "imgs/actions/focus-kiro/key", "TitleAlignment": "bottom" }]
+    },
+    {
+      "UUID": "wtf.sauhsoj.streamdecker.focus-target",
+      "Name": "Focus Target",
+      "Icon": "imgs/actions/focus-kiro/icon",
+      "Tooltip": "Bring kiro-cli, Claude Code, Amazon Quick, or Claude to the front",
+      "PropertyInspectorPath": "ui/focus-target.html",
+      "Controllers": ["Keypad"],
+      "States": [{ "Image": "imgs/actions/focus-kiro/key", "TitleAlignment": "bottom" }]
+    },
+    {
       "UUID": "wtf.sauhsoj.streamdecker.focus-kiro",
       "Name": "Focus Kiro",
       "Icon": "imgs/actions/focus-kiro/icon",

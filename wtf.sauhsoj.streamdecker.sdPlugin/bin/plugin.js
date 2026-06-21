@@ -712,6 +712,1010 @@ function withResolvers() {
     return { promise, resolve, reject };
 }
 
+/** A special constant with type `never` */
+function $constructor(name, initializer, params) {
+    function init(inst, def) {
+        var _a;
+        Object.defineProperty(inst, "_zod", {
+            value: inst._zod ?? {},
+            enumerable: false,
+        });
+        (_a = inst._zod).traits ?? (_a.traits = new Set());
+        inst._zod.traits.add(name);
+        initializer(inst, def);
+        // support prototype modifications
+        for (const k in _.prototype) {
+            if (!(k in inst))
+                Object.defineProperty(inst, k, { value: _.prototype[k].bind(inst) });
+        }
+        inst._zod.constr = _;
+        inst._zod.def = def;
+    }
+    // doesn't work if Parent has a constructor with arguments
+    const Parent = params?.Parent ?? Object;
+    class Definition extends Parent {
+    }
+    Object.defineProperty(Definition, "name", { value: name });
+    function _(def) {
+        var _a;
+        const inst = params?.Parent ? new Definition() : this;
+        init(inst, def);
+        (_a = inst._zod).deferred ?? (_a.deferred = []);
+        for (const fn of inst._zod.deferred) {
+            fn();
+        }
+        return inst;
+    }
+    Object.defineProperty(_, "init", { value: init });
+    Object.defineProperty(_, Symbol.hasInstance, {
+        value: (inst) => {
+            if (params?.Parent && inst instanceof params.Parent)
+                return true;
+            return inst?._zod?.traits?.has(name);
+        },
+    });
+    Object.defineProperty(_, "name", { value: name });
+    return _;
+}
+class $ZodAsyncError extends Error {
+    constructor() {
+        super(`Encountered Promise during synchronous parse. Use .parseAsync() instead.`);
+    }
+}
+const globalConfig = {};
+function config(newConfig) {
+    return globalConfig;
+}
+
+// functions
+function jsonStringifyReplacer(_, value) {
+    if (typeof value === "bigint")
+        return value.toString();
+    return value;
+}
+function cached$1(getter) {
+    return {
+        get value() {
+            {
+                const value = getter();
+                Object.defineProperty(this, "value", { value });
+                return value;
+            }
+        },
+    };
+}
+function cleanRegex(source) {
+    const start = source.startsWith("^") ? 1 : 0;
+    const end = source.endsWith("$") ? source.length - 1 : source.length;
+    return source.slice(start, end);
+}
+function defineLazy(object, key, getter) {
+    Object.defineProperty(object, key, {
+        get() {
+            {
+                const value = getter();
+                object[key] = value;
+                return value;
+            }
+        },
+        set(v) {
+            Object.defineProperty(object, key, {
+                value: v,
+                // configurable: true,
+            });
+            // object[key] = v;
+        },
+        configurable: true,
+    });
+}
+function assignProp(target, prop, value) {
+    Object.defineProperty(target, prop, {
+        value,
+        writable: true,
+        enumerable: true,
+        configurable: true,
+    });
+}
+function esc(str) {
+    return JSON.stringify(str);
+}
+const captureStackTrace = Error.captureStackTrace
+    ? Error.captureStackTrace
+    : (..._args) => { };
+function isObject(data) {
+    return typeof data === "object" && data !== null && !Array.isArray(data);
+}
+const allowsEval = cached$1(() => {
+    if (typeof navigator !== "undefined" && navigator?.userAgent?.includes("Cloudflare")) {
+        return false;
+    }
+    try {
+        const F = Function;
+        new F("");
+        return true;
+    }
+    catch (_) {
+        return false;
+    }
+});
+function escapeRegex(str) {
+    return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+// zod-specific utils
+function clone(inst, def, params) {
+    const cl = new inst._zod.constr(def ?? inst._zod.def);
+    if (!def || params?.parent)
+        cl._zod.parent = inst;
+    return cl;
+}
+function normalizeParams(_params) {
+    return {};
+}
+function optionalKeys(shape) {
+    return Object.keys(shape).filter((k) => {
+        return shape[k]._zod.optin === "optional" && shape[k]._zod.optout === "optional";
+    });
+}
+function aborted(x, startIndex = 0) {
+    for (let i = startIndex; i < x.issues.length; i++) {
+        if (x.issues[i]?.continue !== true)
+            return true;
+    }
+    return false;
+}
+function prefixIssues(path, issues) {
+    return issues.map((iss) => {
+        var _a;
+        (_a = iss).path ?? (_a.path = []);
+        iss.path.unshift(path);
+        return iss;
+    });
+}
+function unwrapMessage(message) {
+    return typeof message === "string" ? message : message?.message;
+}
+function finalizeIssue(iss, ctx, config) {
+    const full = { ...iss, path: iss.path ?? [] };
+    // for backwards compatibility
+    if (!iss.message) {
+        const message = unwrapMessage(iss.inst?._zod.def?.error?.(iss)) ??
+            unwrapMessage(ctx?.error?.(iss)) ??
+            unwrapMessage(config.customError?.(iss)) ??
+            unwrapMessage(config.localeError?.(iss)) ??
+            "Invalid input";
+        full.message = message;
+    }
+    // delete (full as any).def;
+    delete full.inst;
+    delete full.continue;
+    if (!ctx?.reportInput) {
+        delete full.input;
+    }
+    return full;
+}
+
+const initializer = (inst, def) => {
+    inst.name = "$ZodError";
+    Object.defineProperty(inst, "_zod", {
+        value: inst._zod,
+        enumerable: false,
+    });
+    Object.defineProperty(inst, "issues", {
+        value: def,
+        enumerable: false,
+    });
+    Object.defineProperty(inst, "message", {
+        get() {
+            return JSON.stringify(def, jsonStringifyReplacer, 2);
+        },
+        enumerable: true,
+        // configurable: false,
+    });
+    Object.defineProperty(inst, "toString", {
+        value: () => inst.message,
+        enumerable: false,
+    });
+};
+const $ZodError = $constructor("$ZodError", initializer);
+const $ZodRealError = $constructor("$ZodError", initializer, { Parent: Error });
+
+const _parse = (_Err) => (schema, value, _ctx, _params) => {
+    const ctx = _ctx ? Object.assign(_ctx, { async: false }) : { async: false };
+    const result = schema._zod.run({ value, issues: [] }, ctx);
+    if (result instanceof Promise) {
+        throw new $ZodAsyncError();
+    }
+    if (result.issues.length) {
+        const e = new (_params?.Err ?? _Err)(result.issues.map((iss) => finalizeIssue(iss, ctx, config())));
+        captureStackTrace(e, _params?.callee);
+        throw e;
+    }
+    return result.value;
+};
+const parse = /* @__PURE__*/ _parse($ZodRealError);
+const _parseAsync = (_Err) => async (schema, value, _ctx, params) => {
+    const ctx = _ctx ? Object.assign(_ctx, { async: true }) : { async: true };
+    let result = schema._zod.run({ value, issues: [] }, ctx);
+    if (result instanceof Promise)
+        result = await result;
+    if (result.issues.length) {
+        const e = new (params?.Err ?? _Err)(result.issues.map((iss) => finalizeIssue(iss, ctx, config())));
+        captureStackTrace(e, params?.callee);
+        throw e;
+    }
+    return result.value;
+};
+const parseAsync = /* @__PURE__*/ _parseAsync($ZodRealError);
+const _safeParse = (_Err) => (schema, value, _ctx) => {
+    const ctx = _ctx ? { ..._ctx, async: false } : { async: false };
+    const result = schema._zod.run({ value, issues: [] }, ctx);
+    if (result instanceof Promise) {
+        throw new $ZodAsyncError();
+    }
+    return result.issues.length
+        ? {
+            success: false,
+            error: new (_Err ?? $ZodError)(result.issues.map((iss) => finalizeIssue(iss, ctx, config()))),
+        }
+        : { success: true, data: result.value };
+};
+const safeParse = /* @__PURE__*/ _safeParse($ZodRealError);
+const _safeParseAsync = (_Err) => async (schema, value, _ctx) => {
+    const ctx = _ctx ? Object.assign(_ctx, { async: true }) : { async: true };
+    let result = schema._zod.run({ value, issues: [] }, ctx);
+    if (result instanceof Promise)
+        result = await result;
+    return result.issues.length
+        ? {
+            success: false,
+            error: new _Err(result.issues.map((iss) => finalizeIssue(iss, ctx, config()))),
+        }
+        : { success: true, data: result.value };
+};
+const safeParseAsync = /* @__PURE__*/ _safeParseAsync($ZodRealError);
+
+const string$1 = (params) => {
+    const regex = params ? `[\\s\\S]{${params?.minimum ?? 0},${params?.maximum ?? ""}}` : `[\\s\\S]*`;
+    return new RegExp(`^${regex}$`);
+};
+const number$1 = /^-?\d+(?:\.\d+)?/i;
+const boolean$1 = /true|false/i;
+
+class Doc {
+    constructor(args = []) {
+        this.content = [];
+        this.indent = 0;
+        if (this)
+            this.args = args;
+    }
+    indented(fn) {
+        this.indent += 1;
+        fn(this);
+        this.indent -= 1;
+    }
+    write(arg) {
+        if (typeof arg === "function") {
+            arg(this, { execution: "sync" });
+            arg(this, { execution: "async" });
+            return;
+        }
+        const content = arg;
+        const lines = content.split("\n").filter((x) => x);
+        const minIndent = Math.min(...lines.map((x) => x.length - x.trimStart().length));
+        const dedented = lines.map((x) => x.slice(minIndent)).map((x) => " ".repeat(this.indent * 2) + x);
+        for (const line of dedented) {
+            this.content.push(line);
+        }
+    }
+    compile() {
+        const F = Function;
+        const args = this?.args;
+        const content = this?.content ?? [``];
+        const lines = [...content.map((x) => `  ${x}`)];
+        // console.log(lines.join("\n"));
+        return new F(...args, lines.join("\n"));
+    }
+}
+
+const version = {
+    major: 4,
+    minor: 0,
+    patch: 0,
+};
+
+const $ZodType = /*@__PURE__*/ $constructor("$ZodType", (inst, def) => {
+    var _a;
+    inst ?? (inst = {});
+    inst._zod.def = def; // set _def property
+    inst._zod.bag = inst._zod.bag || {}; // initialize _bag object
+    inst._zod.version = version;
+    const checks = [...(inst._zod.def.checks ?? [])];
+    // if inst is itself a checks.$ZodCheck, run it as a check
+    if (inst._zod.traits.has("$ZodCheck")) {
+        checks.unshift(inst);
+    }
+    //
+    for (const ch of checks) {
+        for (const fn of ch._zod.onattach) {
+            fn(inst);
+        }
+    }
+    if (checks.length === 0) {
+        // deferred initializer
+        // inst._zod.parse is not yet defined
+        (_a = inst._zod).deferred ?? (_a.deferred = []);
+        inst._zod.deferred?.push(() => {
+            inst._zod.run = inst._zod.parse;
+        });
+    }
+    else {
+        const runChecks = (payload, checks, ctx) => {
+            let isAborted = aborted(payload);
+            let asyncResult;
+            for (const ch of checks) {
+                if (ch._zod.def.when) {
+                    const shouldRun = ch._zod.def.when(payload);
+                    if (!shouldRun)
+                        continue;
+                }
+                else if (isAborted) {
+                    continue;
+                }
+                const currLen = payload.issues.length;
+                const _ = ch._zod.check(payload);
+                if (_ instanceof Promise && ctx?.async === false) {
+                    throw new $ZodAsyncError();
+                }
+                if (asyncResult || _ instanceof Promise) {
+                    asyncResult = (asyncResult ?? Promise.resolve()).then(async () => {
+                        await _;
+                        const nextLen = payload.issues.length;
+                        if (nextLen === currLen)
+                            return;
+                        if (!isAborted)
+                            isAborted = aborted(payload, currLen);
+                    });
+                }
+                else {
+                    const nextLen = payload.issues.length;
+                    if (nextLen === currLen)
+                        continue;
+                    if (!isAborted)
+                        isAborted = aborted(payload, currLen);
+                }
+            }
+            if (asyncResult) {
+                return asyncResult.then(() => {
+                    return payload;
+                });
+            }
+            return payload;
+        };
+        inst._zod.run = (payload, ctx) => {
+            const result = inst._zod.parse(payload, ctx);
+            if (result instanceof Promise) {
+                if (ctx.async === false)
+                    throw new $ZodAsyncError();
+                return result.then((result) => runChecks(result, checks, ctx));
+            }
+            return runChecks(result, checks, ctx);
+        };
+    }
+    inst["~standard"] = {
+        validate: (value) => {
+            try {
+                const r = safeParse(inst, value);
+                return r.success ? { value: r.data } : { issues: r.error?.issues };
+            }
+            catch (_) {
+                return safeParseAsync(inst, value).then((r) => (r.success ? { value: r.data } : { issues: r.error?.issues }));
+            }
+        },
+        vendor: "zod",
+        version: 1,
+    };
+});
+const $ZodString = /*@__PURE__*/ $constructor("$ZodString", (inst, def) => {
+    $ZodType.init(inst, def);
+    inst._zod.pattern = [...(inst?._zod.bag?.patterns ?? [])].pop() ?? string$1(inst._zod.bag);
+    inst._zod.parse = (payload, _) => {
+        if (def.coerce)
+            try {
+                payload.value = String(payload.value);
+            }
+            catch (_) { }
+        if (typeof payload.value === "string")
+            return payload;
+        payload.issues.push({
+            expected: "string",
+            code: "invalid_type",
+            input: payload.value,
+            inst,
+        });
+        return payload;
+    };
+});
+const $ZodNumber = /*@__PURE__*/ $constructor("$ZodNumber", (inst, def) => {
+    $ZodType.init(inst, def);
+    inst._zod.pattern = inst._zod.bag.pattern ?? number$1;
+    inst._zod.parse = (payload, _ctx) => {
+        if (def.coerce)
+            try {
+                payload.value = Number(payload.value);
+            }
+            catch (_) { }
+        const input = payload.value;
+        if (typeof input === "number" && !Number.isNaN(input) && Number.isFinite(input)) {
+            return payload;
+        }
+        const received = typeof input === "number"
+            ? Number.isNaN(input)
+                ? "NaN"
+                : !Number.isFinite(input)
+                    ? "Infinity"
+                    : undefined
+            : undefined;
+        payload.issues.push({
+            expected: "number",
+            code: "invalid_type",
+            input,
+            inst,
+            ...(received ? { received } : {}),
+        });
+        return payload;
+    };
+});
+const $ZodBoolean = /*@__PURE__*/ $constructor("$ZodBoolean", (inst, def) => {
+    $ZodType.init(inst, def);
+    inst._zod.pattern = boolean$1;
+    inst._zod.parse = (payload, _ctx) => {
+        if (def.coerce)
+            try {
+                payload.value = Boolean(payload.value);
+            }
+            catch (_) { }
+        const input = payload.value;
+        if (typeof input === "boolean")
+            return payload;
+        payload.issues.push({
+            expected: "boolean",
+            code: "invalid_type",
+            input,
+            inst,
+        });
+        return payload;
+    };
+});
+function handleArrayResult(result, final, index) {
+    if (result.issues.length) {
+        final.issues.push(...prefixIssues(index, result.issues));
+    }
+    final.value[index] = result.value;
+}
+const $ZodArray = /*@__PURE__*/ $constructor("$ZodArray", (inst, def) => {
+    $ZodType.init(inst, def);
+    inst._zod.parse = (payload, ctx) => {
+        const input = payload.value;
+        if (!Array.isArray(input)) {
+            payload.issues.push({
+                expected: "array",
+                code: "invalid_type",
+                input,
+                inst,
+            });
+            return payload;
+        }
+        payload.value = Array(input.length);
+        const proms = [];
+        for (let i = 0; i < input.length; i++) {
+            const item = input[i];
+            const result = def.element._zod.run({
+                value: item,
+                issues: [],
+            }, ctx);
+            if (result instanceof Promise) {
+                proms.push(result.then((result) => handleArrayResult(result, payload, i)));
+            }
+            else {
+                handleArrayResult(result, payload, i);
+            }
+        }
+        if (proms.length) {
+            return Promise.all(proms).then(() => payload);
+        }
+        return payload; //handleArrayResultsAsync(parseResults, final);
+    };
+});
+function handleObjectResult(result, final, key) {
+    // if(isOptional)
+    if (result.issues.length) {
+        final.issues.push(...prefixIssues(key, result.issues));
+    }
+    final.value[key] = result.value;
+}
+function handleOptionalObjectResult(result, final, key, input) {
+    if (result.issues.length) {
+        // validation failed against value schema
+        if (input[key] === undefined) {
+            // if input was undefined, ignore the error
+            if (key in input) {
+                final.value[key] = undefined;
+            }
+            else {
+                final.value[key] = result.value;
+            }
+        }
+        else {
+            final.issues.push(...prefixIssues(key, result.issues));
+        }
+    }
+    else if (result.value === undefined) {
+        // validation returned `undefined`
+        if (key in input)
+            final.value[key] = undefined;
+    }
+    else {
+        // non-undefined value
+        final.value[key] = result.value;
+    }
+}
+const $ZodObject = /*@__PURE__*/ $constructor("$ZodObject", (inst, def) => {
+    // requires cast because technically $ZodObject doesn't extend
+    $ZodType.init(inst, def);
+    const _normalized = cached$1(() => {
+        const keys = Object.keys(def.shape);
+        for (const k of keys) {
+            if (!(def.shape[k] instanceof $ZodType)) {
+                throw new Error(`Invalid element at key "${k}": expected a Zod schema`);
+            }
+        }
+        const okeys = optionalKeys(def.shape);
+        return {
+            shape: def.shape,
+            keys,
+            keySet: new Set(keys),
+            numKeys: keys.length,
+            optionalKeys: new Set(okeys),
+        };
+    });
+    defineLazy(inst._zod, "propValues", () => {
+        const shape = def.shape;
+        const propValues = {};
+        for (const key in shape) {
+            const field = shape[key]._zod;
+            if (field.values) {
+                propValues[key] ?? (propValues[key] = new Set());
+                for (const v of field.values)
+                    propValues[key].add(v);
+            }
+        }
+        return propValues;
+    });
+    const generateFastpass = (shape) => {
+        const doc = new Doc(["shape", "payload", "ctx"]);
+        const normalized = _normalized.value;
+        const parseStr = (key) => {
+            const k = esc(key);
+            return `shape[${k}]._zod.run({ value: input[${k}], issues: [] }, ctx)`;
+        };
+        doc.write(`const input = payload.value;`);
+        const ids = Object.create(null);
+        let counter = 0;
+        for (const key of normalized.keys) {
+            ids[key] = `key_${counter++}`;
+        }
+        // A: preserve key order {
+        doc.write(`const newResult = {}`);
+        for (const key of normalized.keys) {
+            if (normalized.optionalKeys.has(key)) {
+                const id = ids[key];
+                doc.write(`const ${id} = ${parseStr(key)};`);
+                const k = esc(key);
+                doc.write(`
+        if (${id}.issues.length) {
+          if (input[${k}] === undefined) {
+            if (${k} in input) {
+              newResult[${k}] = undefined;
+            }
+          } else {
+            payload.issues = payload.issues.concat(
+              ${id}.issues.map((iss) => ({
+                ...iss,
+                path: iss.path ? [${k}, ...iss.path] : [${k}],
+              }))
+            );
+          }
+        } else if (${id}.value === undefined) {
+          if (${k} in input) newResult[${k}] = undefined;
+        } else {
+          newResult[${k}] = ${id}.value;
+        }
+        `);
+            }
+            else {
+                const id = ids[key];
+                //  const id = ids[key];
+                doc.write(`const ${id} = ${parseStr(key)};`);
+                doc.write(`
+          if (${id}.issues.length) payload.issues = payload.issues.concat(${id}.issues.map(iss => ({
+            ...iss,
+            path: iss.path ? [${esc(key)}, ...iss.path] : [${esc(key)}]
+          })));`);
+                doc.write(`newResult[${esc(key)}] = ${id}.value`);
+            }
+        }
+        doc.write(`payload.value = newResult;`);
+        doc.write(`return payload;`);
+        const fn = doc.compile();
+        return (payload, ctx) => fn(shape, payload, ctx);
+    };
+    let fastpass;
+    const isObject$1 = isObject;
+    const jit = !globalConfig.jitless;
+    const allowsEval$1 = allowsEval;
+    const fastEnabled = jit && allowsEval$1.value; // && !def.catchall;
+    const catchall = def.catchall;
+    let value;
+    inst._zod.parse = (payload, ctx) => {
+        value ?? (value = _normalized.value);
+        const input = payload.value;
+        if (!isObject$1(input)) {
+            payload.issues.push({
+                expected: "object",
+                code: "invalid_type",
+                input,
+                inst,
+            });
+            return payload;
+        }
+        const proms = [];
+        if (jit && fastEnabled && ctx?.async === false && ctx.jitless !== true) {
+            // always synchronous
+            if (!fastpass)
+                fastpass = generateFastpass(def.shape);
+            payload = fastpass(payload, ctx);
+        }
+        else {
+            payload.value = {};
+            const shape = value.shape;
+            for (const key of value.keys) {
+                const el = shape[key];
+                // do not add omitted optional keys
+                // if (!(key in input)) {
+                //   if (optionalKeys.has(key)) continue;
+                //   payload.issues.push({
+                //     code: "invalid_type",
+                //     path: [key],
+                //     expected: "nonoptional",
+                //     note: `Missing required key: "${key}"`,
+                //     input,
+                //     inst,
+                //   });
+                // }
+                const r = el._zod.run({ value: input[key], issues: [] }, ctx);
+                const isOptional = el._zod.optin === "optional" && el._zod.optout === "optional";
+                if (r instanceof Promise) {
+                    proms.push(r.then((r) => isOptional ? handleOptionalObjectResult(r, payload, key, input) : handleObjectResult(r, payload, key)));
+                }
+                else if (isOptional) {
+                    handleOptionalObjectResult(r, payload, key, input);
+                }
+                else {
+                    handleObjectResult(r, payload, key);
+                }
+            }
+        }
+        if (!catchall) {
+            // return payload;
+            return proms.length ? Promise.all(proms).then(() => payload) : payload;
+        }
+        const unrecognized = [];
+        // iterate over input keys
+        const keySet = value.keySet;
+        const _catchall = catchall._zod;
+        const t = _catchall.def.type;
+        for (const key of Object.keys(input)) {
+            if (keySet.has(key))
+                continue;
+            if (t === "never") {
+                unrecognized.push(key);
+                continue;
+            }
+            const r = _catchall.run({ value: input[key], issues: [] }, ctx);
+            if (r instanceof Promise) {
+                proms.push(r.then((r) => handleObjectResult(r, payload, key)));
+            }
+            else {
+                handleObjectResult(r, payload, key);
+            }
+        }
+        if (unrecognized.length) {
+            payload.issues.push({
+                code: "unrecognized_keys",
+                keys: unrecognized,
+                input,
+                inst,
+            });
+        }
+        if (!proms.length)
+            return payload;
+        return Promise.all(proms).then(() => {
+            return payload;
+        });
+    };
+});
+function handleUnionResults(results, final, inst, ctx) {
+    for (const result of results) {
+        if (result.issues.length === 0) {
+            final.value = result.value;
+            return final;
+        }
+    }
+    final.issues.push({
+        code: "invalid_union",
+        input: final.value,
+        inst,
+        errors: results.map((result) => result.issues.map((iss) => finalizeIssue(iss, ctx, config()))),
+    });
+    return final;
+}
+const $ZodUnion = /*@__PURE__*/ $constructor("$ZodUnion", (inst, def) => {
+    $ZodType.init(inst, def);
+    defineLazy(inst._zod, "optin", () => def.options.some((o) => o._zod.optin === "optional") ? "optional" : undefined);
+    defineLazy(inst._zod, "optout", () => def.options.some((o) => o._zod.optout === "optional") ? "optional" : undefined);
+    defineLazy(inst._zod, "values", () => {
+        if (def.options.every((o) => o._zod.values)) {
+            return new Set(def.options.flatMap((option) => Array.from(option._zod.values)));
+        }
+        return undefined;
+    });
+    defineLazy(inst._zod, "pattern", () => {
+        if (def.options.every((o) => o._zod.pattern)) {
+            const patterns = def.options.map((o) => o._zod.pattern);
+            return new RegExp(`^(${patterns.map((p) => cleanRegex(p.source)).join("|")})$`);
+        }
+        return undefined;
+    });
+    inst._zod.parse = (payload, ctx) => {
+        let async = false;
+        const results = [];
+        for (const option of def.options) {
+            const result = option._zod.run({
+                value: payload.value,
+                issues: [],
+            }, ctx);
+            if (result instanceof Promise) {
+                results.push(result);
+                async = true;
+            }
+            else {
+                if (result.issues.length === 0)
+                    return result;
+                results.push(result);
+            }
+        }
+        if (!async)
+            return handleUnionResults(results, payload, inst, ctx);
+        return Promise.all(results).then((results) => {
+            return handleUnionResults(results, payload, inst, ctx);
+        });
+    };
+});
+const $ZodLiteral = /*@__PURE__*/ $constructor("$ZodLiteral", (inst, def) => {
+    $ZodType.init(inst, def);
+    inst._zod.values = new Set(def.values);
+    inst._zod.pattern = new RegExp(`^(${def.values
+        .map((o) => (typeof o === "string" ? escapeRegex(o) : o ? o.toString() : String(o)))
+        .join("|")})$`);
+    inst._zod.parse = (payload, _ctx) => {
+        const input = payload.value;
+        if (inst._zod.values.has(input)) {
+            return payload;
+        }
+        payload.issues.push({
+            code: "invalid_value",
+            values: def.values,
+            input,
+            inst,
+        });
+        return payload;
+    };
+});
+const $ZodOptional = /*@__PURE__*/ $constructor("$ZodOptional", (inst, def) => {
+    $ZodType.init(inst, def);
+    inst._zod.optin = "optional";
+    inst._zod.optout = "optional";
+    defineLazy(inst._zod, "values", () => {
+        return def.innerType._zod.values ? new Set([...def.innerType._zod.values, undefined]) : undefined;
+    });
+    defineLazy(inst._zod, "pattern", () => {
+        const pattern = def.innerType._zod.pattern;
+        return pattern ? new RegExp(`^(${cleanRegex(pattern.source)})?$`) : undefined;
+    });
+    inst._zod.parse = (payload, ctx) => {
+        if (def.innerType._zod.optin === "optional") {
+            return def.innerType._zod.run(payload, ctx);
+        }
+        if (payload.value === undefined) {
+            return payload;
+        }
+        return def.innerType._zod.run(payload, ctx);
+    };
+});
+const $ZodLazy = /*@__PURE__*/ $constructor("$ZodLazy", (inst, def) => {
+    $ZodType.init(inst, def);
+    defineLazy(inst._zod, "innerType", () => def.getter());
+    defineLazy(inst._zod, "pattern", () => inst._zod.innerType._zod.pattern);
+    defineLazy(inst._zod, "propValues", () => inst._zod.innerType._zod.propValues);
+    defineLazy(inst._zod, "optin", () => inst._zod.innerType._zod.optin);
+    defineLazy(inst._zod, "optout", () => inst._zod.innerType._zod.optout);
+    inst._zod.parse = (payload, ctx) => {
+        const inner = inst._zod.innerType;
+        return inner._zod.run(payload, ctx);
+    };
+});
+
+function _string(Class, params) {
+    return new Class({
+        type: "string",
+        ...normalizeParams(),
+    });
+}
+function _number(Class, params) {
+    return new Class({
+        type: "number",
+        checks: [],
+        ...normalizeParams(),
+    });
+}
+function _boolean(Class, params) {
+    return new Class({
+        type: "boolean",
+        ...normalizeParams(),
+    });
+}
+
+const ZodMiniType = /*@__PURE__*/ $constructor("ZodMiniType", (inst, def) => {
+    if (!inst._zod)
+        throw new Error("Uninitialized schema in ZodMiniType.");
+    $ZodType.init(inst, def);
+    inst.def = def;
+    inst.parse = (data, params) => parse(inst, data, params, { callee: inst.parse });
+    inst.safeParse = (data, params) => safeParse(inst, data, params);
+    inst.parseAsync = async (data, params) => parseAsync(inst, data, params, { callee: inst.parseAsync });
+    inst.safeParseAsync = async (data, params) => safeParseAsync(inst, data, params);
+    inst.check = (...checks) => {
+        return inst.clone({
+            ...def,
+            checks: [
+                ...(def.checks ?? []),
+                ...checks.map((ch) => typeof ch === "function" ? { _zod: { check: ch, def: { check: "custom" }, onattach: [] } } : ch),
+            ],
+        }
+        // { parent: true }
+        );
+    };
+    inst.clone = (_def, params) => clone(inst, _def, params);
+    inst.brand = () => inst;
+    inst.register = ((reg, meta) => {
+        reg.add(inst, meta);
+        return inst;
+    });
+});
+const ZodMiniString = /*@__PURE__*/ $constructor("ZodMiniString", (inst, def) => {
+    $ZodString.init(inst, def);
+    ZodMiniType.init(inst, def);
+});
+function string(params) {
+    return _string(ZodMiniString);
+}
+const ZodMiniNumber = /*@__PURE__*/ $constructor("ZodMiniNumber", (inst, def) => {
+    $ZodNumber.init(inst, def);
+    ZodMiniType.init(inst, def);
+});
+function number(params) {
+    return _number(ZodMiniNumber);
+}
+const ZodMiniBoolean = /*@__PURE__*/ $constructor("ZodMiniBoolean", (inst, def) => {
+    $ZodBoolean.init(inst, def);
+    ZodMiniType.init(inst, def);
+});
+function boolean(params) {
+    return _boolean(ZodMiniBoolean);
+}
+const ZodMiniArray = /*@__PURE__*/ $constructor("ZodMiniArray", (inst, def) => {
+    $ZodArray.init(inst, def);
+    ZodMiniType.init(inst, def);
+});
+function array(element, params) {
+    return new ZodMiniArray({
+        type: "array",
+        element: element,
+        ...normalizeParams(),
+    });
+}
+const ZodMiniObject = /*@__PURE__*/ $constructor("ZodMiniObject", (inst, def) => {
+    $ZodObject.init(inst, def);
+    ZodMiniType.init(inst, def);
+    defineLazy(inst, "shape", () => def.shape);
+});
+function object(shape, params) {
+    const def = {
+        type: "object",
+        get shape() {
+            assignProp(this, "shape", { ...shape });
+            return this.shape;
+        },
+        ...normalizeParams(),
+    };
+    return new ZodMiniObject(def);
+}
+const ZodMiniUnion = /*@__PURE__*/ $constructor("ZodMiniUnion", (inst, def) => {
+    $ZodUnion.init(inst, def);
+    ZodMiniType.init(inst, def);
+});
+function union(options, params) {
+    return new ZodMiniUnion({
+        type: "union",
+        options: options,
+        ...normalizeParams(),
+    });
+}
+const ZodMiniLiteral = /*@__PURE__*/ $constructor("ZodMiniLiteral", (inst, def) => {
+    $ZodLiteral.init(inst, def);
+    ZodMiniType.init(inst, def);
+});
+function literal(value, params) {
+    return new ZodMiniLiteral({
+        type: "literal",
+        values: Array.isArray(value) ? value : [value],
+        ...normalizeParams(),
+    });
+}
+const ZodMiniOptional = /*@__PURE__*/ $constructor("ZodMiniOptional", (inst, def) => {
+    $ZodOptional.init(inst, def);
+    ZodMiniType.init(inst, def);
+});
+function optional(innerType) {
+    return new ZodMiniOptional({
+        type: "optional",
+        innerType: innerType,
+    });
+}
+const ZodMiniLazy = /*@__PURE__*/ $constructor("ZodMiniLazy", (inst, def) => {
+    $ZodLazy.init(inst, def);
+    ZodMiniType.init(inst, def);
+});
+// export function lazy<T extends object>(getter: () => T): T {
+//   return util.createTransparentProxy<T>(getter);
+// }
+function _lazy(getter) {
+    return new ZodMiniLazy({
+        type: "lazy",
+        getter: getter,
+    });
+}
+
+/**
+ * Serializable structure that represents an option.
+ */
+const Option = object({
+    type: literal("option"),
+    disabled: optional(boolean()),
+    label: string(),
+    value: union([boolean(), number(), string()]),
+});
+
+/**
+ * Serializable structure that represents a group of options.
+ */
+const OptionGroup = object({
+    type: literal("option-group"),
+    disabled: optional(boolean()),
+    options: _lazy(() => array(union([Option, OptionGroup]))),
+    label: string(),
+});
+
 function getDefaultExportFromCjs (x) {
 	return x && x.__esModule && Object.prototype.hasOwnProperty.call(x, 'default') ? x['default'] : x;
 }
@@ -5751,6 +6755,14 @@ var DeviceType;
      * Virtual Stream Deck, comprised of 1 to 64 action (on-screen) on a scalable canvas, with a maximum layout of 8 x 8.
      */
     DeviceType[DeviceType["VirtualStreamDeck"] = 11] = "VirtualStreamDeck";
+    /**
+     * High-performance gaming keyboard, with a built-in Stream Deck comprised of 12 customizable LCD keys in a 3 x 4 layout, an LCD screen, and 2 dials.
+     */
+    DeviceType[DeviceType["Galleon100SD"] = 12] = "Galleon100SD";
+    /**
+     * Stream Deck + XL, comprised of 36 customizable LCD keys in a 9 x 4 layout, a touch strip, and 6 dials.
+     */
+    DeviceType[DeviceType["StreamDeckPlusXL"] = 13] = "StreamDeckPlusXL";
 })(DeviceType || (DeviceType = {}));
 
 /**
@@ -6488,6 +7500,16 @@ function getManifest() {
     return manifest$1.value;
 }
 
+/**
+ * Configuration shared by action components that must not depend on the plugin settings module.
+ */
+const actionConfig = {
+    /**
+     * Determines whether settings requests should use message identifiers and action settings cache behavior.
+     */
+    useExperimentalMessageIdentifiers: false,
+};
+
 const __items$1 = new Map();
 /**
  * Provides a read-only store of Stream Deck devices.
@@ -6709,7 +7731,6 @@ function requiresVersion(minimumVersion, streamDeckVersion, feature) {
     }
 }
 
-let __useExperimentalMessageIdentifiers = false;
 const settings = {
     /**
      * Available from Stream Deck 7.1; determines whether message identifiers should be sent when getting
@@ -6720,7 +7741,7 @@ const settings = {
      * @returns The value.
      */
     get useExperimentalMessageIdentifiers() {
-        return __useExperimentalMessageIdentifiers;
+        return actionConfig.useExperimentalMessageIdentifiers;
     },
     /**
      * Available from Stream Deck 7.1; determines whether message identifiers should be sent when getting
@@ -6731,7 +7752,7 @@ const settings = {
      */
     set useExperimentalMessageIdentifiers(value) {
         requiresVersion(7.1, connection.version, "Message identifiers");
-        __useExperimentalMessageIdentifiers = value;
+        actionConfig.useExperimentalMessageIdentifiers = value;
     },
     /**
      * Gets the global settings associated with the plugin.
@@ -6917,6 +7938,44 @@ class UIController {
 }
 const ui = new UIController();
 
+/**
+ * Provides a cache for action settings, keyed by action instance identifier.
+ */
+class SettingsCache {
+    /**
+     * Underlying map of action ID to cached settings.
+     */
+    #entries = new Map();
+    /**
+     * Removes the cached settings for the specified action.
+     * @param id Action instance identifier.
+     */
+    delete(id) {
+        this.#entries.delete(id);
+    }
+    /**
+     * Gets the cached settings for the specified action.
+     * @param id Action instance identifier.
+     * @returns The cached settings when present; otherwise `undefined`.
+     */
+    get(id) {
+        const settings = this.#entries.get(id);
+        return settings !== undefined ? structuredClone(settings) : undefined;
+    }
+    /**
+     * Sets the cached settings for the specified action.
+     * @param id Action instance identifier.
+     * @param settings The settings to cache.
+     */
+    set(id, settings) {
+        this.#entries.set(id, structuredClone(settings));
+    }
+}
+/**
+ * Singleton instance of the settings cache.
+ */
+const settingsCache = new SettingsCache();
+
 const __items = new Map();
 /**
  * Provides a read-only store of Stream Deck devices.
@@ -7046,6 +8105,18 @@ class Action extends ActionContext {
      * @returns Promise containing the action instance's settings.
      */
     async getSettings() {
+        if (actionConfig.useExperimentalMessageIdentifiers) {
+            const cached = settingsCache.get(this.id);
+            if (cached !== undefined) {
+                logger.trace(JSON.stringify({
+                    event: "getSettings",
+                    context: this.id,
+                    source: "cache",
+                    settings: cached,
+                }));
+                return cached;
+            }
+        }
         const res = await this.#fetch("getSettings", "didReceiveSettings");
         return res.payload.settings;
     }
@@ -7085,15 +8156,16 @@ class Action extends ActionContext {
         });
     }
     /**
-     * Sets the {@link settings} associated with this action instance. Use in conjunction with {@link Action.getSettings}.
-     * @param settings Settings to persist.
-     * @returns `Promise` resolved when the {@link settings} are sent to Stream Deck.
+     * Sets the settings associated with this action instance. Use in conjunction with {@link Action.getSettings}.
+     * @param value Settings to persist.
+     * @returns `Promise` resolved when the settings are sent to Stream Deck.
      */
-    setSettings(settings) {
+    setSettings(value) {
+        settingsCache.delete(this.id);
         return connection.send({
             event: "setSettings",
             context: this.id,
-            payload: settings,
+            payload: value,
         });
     }
     /**
@@ -7377,9 +8449,21 @@ class ActionService extends ReadOnlyActionStore {
         connection.prependListener("willAppear", (ev) => {
             const action = ev.payload.controller === "Encoder" ? new DialAction(ev) : new KeyAction(ev);
             actionStore.set(action);
+            if (actionConfig.useExperimentalMessageIdentifiers) {
+                settingsCache.set(ev.context, ev.payload.settings);
+            }
+        });
+        // Update the settings cache when settings are received.
+        connection.prependListener("didReceiveSettings", (ev) => {
+            if (actionConfig.useExperimentalMessageIdentifiers) {
+                settingsCache.set(ev.context, ev.payload.settings);
+            }
         });
         // Remove the action from the store.
-        connection.prependListener("willDisappear", (ev) => actionStore.delete(ev.context));
+        connection.prependListener("willDisappear", (ev) => {
+            actionStore.delete(ev.context);
+            settingsCache.delete(ev.context);
+        });
     }
     /**
      * Occurs when the user presses a dial (Stream Deck +).
@@ -8085,10 +9169,10 @@ function nextSurfaceRef(refs, current) {
     return refs[(i + 1) % refs.length];
 }
 
-const execFileAsync$1 = promisify(execFile);
+const execFileAsync$2 = promisify(execFile);
 /** Default runner: invoke the `cmux` CLI via execFile (no shell, args passed as argv). */
 const defaultRunner$1 = async (args) => {
-    const { stdout } = await execFileAsync$1("cmux", args);
+    const { stdout } = await execFileAsync$2("cmux", args);
     return stdout.trim();
 };
 class CmuxBackend {
@@ -8100,7 +9184,7 @@ class CmuxBackend {
     async checkPermission() {
         return true; // cmux uses its control socket; no AppleScript automation prompt
     }
-    async focus() {
+    async focus(_detectCommand) {
         await this.run(["set-app-focus", "active"]);
         return "ok";
     }
@@ -8168,7 +9252,8 @@ class AppleScriptBackend {
             return false;
         }
     }
-    async focus() {
+    async focus(detectCommand) {
+        const cmd = detectCommand ?? this.cmd;
         const result = await this.run(`
       tell application "${this.name}"
         activate
@@ -8176,7 +9261,7 @@ class AppleScriptBackend {
           repeat with t in tabs of w
             set s to current session of t
             set theTty to tty of s
-            set hasKiro to (do shell script "ps -t " & theTty & " -o command= | grep -q ${this.cmd} && echo yes || echo no")
+            set hasKiro to (do shell script "ps -t " & theTty & " -o command= | grep -q '${cmd}' && echo yes || echo no")
             if hasKiro is "yes" then
               select t
               return "found"
@@ -8202,7 +9287,7 @@ class AppleScriptBackend {
             set idx to ((c + i - 1) mod n) + 1
             set s to current session of tab idx
             set theTty to tty of s
-            set hasKiro to (do shell script "ps -t " & theTty & " -o command= | grep -q ${this.cmd} && echo yes || echo no")
+            set hasKiro to (do shell script "ps -t " & theTty & " -o command= | grep -q '${this.cmd}' && echo yes || echo no")
             if hasKiro is "yes" then
               select tab idx
               return
@@ -8227,7 +9312,7 @@ class AppleScriptBackend {
             set idx to ((c + i - 1) mod n) + 1
             set s to current session of tab idx
             set theTty to tty of s
-            set hasKiro to (do shell script "ps -t " & theTty & " -o command= | grep -q ${this.cmd} && echo yes || echo no")
+            set hasKiro to (do shell script "ps -t " & theTty & " -o command= | grep -q '${this.cmd}' && echo yes || echo no")
             if hasKiro is "yes" and is processing of s is false then
               select tab idx
               return
@@ -12214,6 +13299,47 @@ function getScriptsDir() {
     // Last resort: config directory
     return join$1(CONFIG_DIR, "scripts");
 }
+/**
+ * Resolve icons directory with fallback chain:
+ * 1. User overrides: ~/.config/streamdecker/icons/
+ * 2. Bundled icons: .app/Contents/Resources/icons/
+ * 3. Icon pack: wtf.sauhsoj.kiro-icons.sdIconPack/icons/
+ */
+function getIconsDir() {
+    // User overrides
+    const userIcons = join$1(CONFIG_DIR, "icons");
+    if (existsSync$1(userIcons)) {
+        return userIcons;
+    }
+    // Bundled app
+    const execPath = process.execPath;
+    if (execPath.includes(".app/Contents/MacOS")) {
+        return join$1(dirname(execPath), "..", "Resources", "icons");
+    }
+    // Development - shared icons
+    const sharedIcons = join$1(dirname(import.meta.url.replace("file://", "")), "../../../shared/icons");
+    if (existsSync$1(sharedIcons)) {
+        return sharedIcons;
+    }
+    return join$1(CONFIG_DIR, "icons");
+}
+/**
+ * Resolve a specific icon by name, checking multiple sizes
+ */
+function resolveIcon(name, size) {
+    const iconsDir = getIconsDir();
+    // Try size-specific first
+    {
+        const sized = join$1(iconsDir, `${name}-${size}.png`);
+        if (existsSync$1(sized))
+            return sized;
+    }
+    // Try base name
+    const base = join$1(iconsDir, `${name}.png`);
+    if (existsSync$1(base))
+        return base;
+    return null;
+}
 
 let cachedConfig = null;
 /**
@@ -12258,7 +13384,7 @@ function getConfig() {
     return cachedConfig ?? loadConfig();
 }
 
-const execFileAsync = promisify(execFile);
+const execFileAsync$1 = promisify(execFile);
 const APPLESCRIPT_TERMINALS = [
     "iTerm",
     "Terminal",
@@ -12279,7 +13405,7 @@ function resolveBackendName(app, probe) {
 }
 async function isRunning(proc) {
     try {
-        const { stdout } = await execFileAsync("pgrep", ["-x", proc]);
+        const { stdout } = await execFileAsync$1("pgrep", ["-x", proc]);
         return stdout.trim().length > 0;
     }
     catch {
@@ -12288,7 +13414,7 @@ async function isRunning(proc) {
 }
 async function isCmuxOnPath() {
     try {
-        await execFileAsync("which", ["cmux"]);
+        await execFileAsync$1("which", ["cmux"]);
         return true;
     }
     catch {
@@ -12851,6 +13977,211 @@ let SendThinkingAction = (() => {
     return _classThis;
 })();
 
+const TARGETS = {
+    "kiro-cli": {
+        id: "kiro-cli",
+        label: "Kiro",
+        kind: "terminal",
+        command: "kiro-cli chat",
+        detectCommand: "kiro-cli",
+        launchIcon: "kiro-launch",
+        focusIcon: "kiro-focus",
+    },
+    "claude-code": {
+        id: "claude-code",
+        label: "Claude Code",
+        kind: "terminal",
+        command: "claude",
+        detectCommand: "claude",
+        launchIcon: "claude-code-launch",
+        focusIcon: "claude-code-focus",
+    },
+    "amazon-quick": {
+        id: "amazon-quick",
+        label: "Quick",
+        kind: "gui",
+        appName: "Amazon Quick",
+        bundleId: "com.amazon.QuickWork.mac",
+        newSession: "cmd-n",
+        launchIcon: "amazon-quick-launch",
+        focusIcon: "amazon-quick-focus",
+    },
+    "claude-app": {
+        id: "claude-app",
+        label: "Claude",
+        kind: "gui",
+        appName: "Claude",
+        bundleId: "com.anthropic.claudefordesktop",
+        newSession: "cmd-n",
+        launchIcon: "claude-app-launch",
+        focusIcon: "claude-app-focus",
+    },
+};
+function getTarget(id) {
+    return id in TARGETS ? TARGETS[id] : undefined;
+}
+
+const execFileAsync = promisify(execFile);
+const defaultOpen = async (appName) => {
+    await execFileAsync("open", ["-a", appName]);
+};
+const defaultOsa = async (script) => {
+    await execFileAsync("osascript", ["-e", script]);
+};
+/** Bring a GUI app to the front (launching it if needed). */
+async function activateApp(appName, deps = {}) {
+    await (deps.open ?? defaultOpen)(appName);
+}
+/** Launch/foreground a GUI target, then start a new session if it supports cmd-n. */
+async function launchApp(target, deps = {}) {
+    const open = deps.open ?? defaultOpen;
+    const osa = deps.osascript ?? defaultOsa;
+    // The app needs a moment to become frontmost before the ⌘N keystroke, or the keystroke could go to the wrong app.
+    const delayMs = deps.delayMs ?? 600;
+    await open(target.appName);
+    if (target.newSession === "cmd-n") {
+        // Give the app a moment to become frontmost before the keystroke.
+        await new Promise((r) => setTimeout(r, delayMs));
+        await osa('tell application "System Events" to keystroke "n" using command down');
+    }
+}
+
+/** Launch a target: terminal → new tab (new session); gui → open + Cmd+N. */
+async function launchTarget(id, folder) {
+    const t = getTarget(id);
+    if (!t)
+        throw new Error(`Unknown target: ${id}`);
+    if (t.kind === "terminal") {
+        const backend = await getTerminalBackend();
+        const cmd = folder ? `cd "${folder}" && ${t.command}` : t.command;
+        await backend.openTab(cmd);
+    }
+    else {
+        await launchApp(t);
+    }
+}
+/** Focus a target: terminal → focus tab running its command; gui → bring to front. */
+async function focusTarget(id) {
+    const t = getTarget(id);
+    if (!t)
+        throw new Error(`Unknown target: ${id}`);
+    if (t.kind === "terminal") {
+        const backend = await getTerminalBackend();
+        await backend.focus(t.detectCommand);
+    }
+    else {
+        await activateApp(t.appName);
+    }
+}
+
+/** Resolve a target icon base-name to a PNG data URL (144px), or null if absent. */
+function targetIconDataUrl(iconName) {
+    const path = resolveIcon(iconName, 144);
+    if (!path)
+        return null;
+    return `data:image/png;base64,${readFileSync$1(path).toString("base64")}`;
+}
+
+let LaunchTargetAction = (() => {
+    let _classDecorators = [action({ UUID: "wtf.sauhsoj.streamdecker.launch-target" })];
+    let _classDescriptor;
+    let _classExtraInitializers = [];
+    let _classThis;
+    let _classSuper = SingletonAction;
+    (class extends _classSuper {
+        static { _classThis = this; }
+        static {
+            const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
+            __esDecorate(null, _classDescriptor = { value: _classThis }, _classDecorators, { kind: "class", name: _classThis.name, metadata: _metadata }, null, _classExtraInitializers);
+            _classThis = _classDescriptor.value;
+            if (_metadata) Object.defineProperty(_classThis, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+            __runInitializers(_classThis, _classExtraInitializers);
+        }
+        async onWillAppear(ev) {
+            await this.applyImage(ev);
+        }
+        async onDidReceiveSettings(ev) {
+            await this.applyImage(ev);
+        }
+        async onKeyDown(ev) {
+            const { target, folder } = ev.payload.settings;
+            if (!target || !getTarget(target)) {
+                await ev.action.showAlert();
+                return;
+            }
+            try {
+                await launchTarget(target, folder || undefined);
+            }
+            catch (err) {
+                streamDeck.logger.error(`LaunchTarget failed: ${err}`);
+                await ev.action.showAlert();
+            }
+        }
+        async applyImage(ev) {
+            const { target } = ev.payload.settings;
+            const t = target ? getTarget(target) : undefined;
+            if (!t)
+                return;
+            const url = targetIconDataUrl(t.launchIcon);
+            if (url)
+                await ev.action.setImage(url);
+            else
+                await ev.action.setTitle(t.label);
+        }
+    });
+    return _classThis;
+})();
+
+let FocusTargetAction = (() => {
+    let _classDecorators = [action({ UUID: "wtf.sauhsoj.streamdecker.focus-target" })];
+    let _classDescriptor;
+    let _classExtraInitializers = [];
+    let _classThis;
+    let _classSuper = SingletonAction;
+    (class extends _classSuper {
+        static { _classThis = this; }
+        static {
+            const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
+            __esDecorate(null, _classDescriptor = { value: _classThis }, _classDecorators, { kind: "class", name: _classThis.name, metadata: _metadata }, null, _classExtraInitializers);
+            _classThis = _classDescriptor.value;
+            if (_metadata) Object.defineProperty(_classThis, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+            __runInitializers(_classThis, _classExtraInitializers);
+        }
+        async onWillAppear(ev) {
+            await this.applyImage(ev);
+        }
+        async onDidReceiveSettings(ev) {
+            await this.applyImage(ev);
+        }
+        async onKeyDown(ev) {
+            const { target } = ev.payload.settings;
+            if (!target || !getTarget(target)) {
+                await ev.action.showAlert();
+                return;
+            }
+            try {
+                await focusTarget(target);
+            }
+            catch (err) {
+                streamDeck.logger.error(`FocusTarget failed: ${err}`);
+                await ev.action.showAlert();
+            }
+        }
+        async applyImage(ev) {
+            const { target } = ev.payload.settings;
+            const t = target ? getTarget(target) : undefined;
+            if (!t)
+                return;
+            const url = targetIconDataUrl(t.focusIcon);
+            if (url)
+                await ev.action.setImage(url);
+            else
+                await ev.action.setTitle(t.label);
+        }
+    });
+    return _classThis;
+})();
+
 // Register all actions
 streamDeck.actions.registerAction(new FocusKiroAction());
 streamDeck.actions.registerAction(new LaunchKiroCliAction());
@@ -12863,6 +14194,8 @@ streamDeck.actions.registerAction(new KiroStatusAction());
 streamDeck.actions.registerAction(new SendYesAction());
 streamDeck.actions.registerAction(new SendNoAction());
 streamDeck.actions.registerAction(new SendThinkingAction());
+streamDeck.actions.registerAction(new LaunchTargetAction());
+streamDeck.actions.registerAction(new FocusTargetAction());
 // Monitor terminal apps
 streamDeck.system.onApplicationDidLaunch((ev) => {
     streamDeck.logger.info(`Terminal launched: ${ev.application}`);
