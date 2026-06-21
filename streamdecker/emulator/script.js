@@ -7,7 +7,19 @@ let isConnected = false;
 let config = null;
 
 const buttonLabels = ['Focus', 'Cycle', 'Alert', 'Launch', 'Yes', 'No', 'Trust', 'Agent'];
-const buttonActions = ['kiro.focus', 'kiro.cycle', 'kiro.alert', 'kiro.launch', 'kiro.yes', 'kiro.no', 'kiro.thinking', 'kiro.agent'];
+
+function renderButtonActions(cfg) {
+  const slots = cfg.device?.type === 'mini' ? 6 : 8;
+  const byPos = new Array(slots).fill(null);
+  (cfg.buttons || []).forEach(b => { if (b.position >= 0 && b.position < slots) byPos[b.position] = b; });
+  for (let i = 0; i < 8; i++) {
+    const label = (i < slots && byPos[i]) ? byPos[i].action : '';
+    const el = document.getElementById(`action-${i}`);
+    if (el) el.textContent = label;
+    const miniEl = document.getElementById(`mini-action-${i}`);
+    if (miniEl) miniEl.textContent = label;
+  }
+}
 
 // Config management
 async function loadConfig() {
@@ -15,6 +27,7 @@ async function loadConfig() {
     const res = await fetch(API_URL);
     config = await res.json();
     populateSettingsForm();
+    renderButtonActions(config);
   } catch (e) {
     console.error('Failed to load config:', e);
   }
@@ -29,6 +42,7 @@ async function saveConfig(newConfig) {
     });
     config = await res.json();
     populateSettingsForm();
+    renderButtonActions(config);
     return true;
   } catch (e) {
     console.error('Failed to save config:', e);
@@ -111,6 +125,7 @@ function connect() {
     } else if (msg.type === 'configChanged') {
       config = msg.config;
       populateSettingsForm();
+      renderButtonActions(config);
     }
   };
 }
