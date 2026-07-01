@@ -2,7 +2,7 @@
   "$schema": "https://schemas.elgato.com/streamdeck/plugins/manifest.json",
   "UUID": "wtf.sauhsoj.streamdecker",
   "Name": "Kiro CLI Tools",
-  "Version": "0.2.0",
+  "Version": "0.3.0",
   "Author": "sauhsoj",
   "Description": "Stream Deck integration for kiro-cli - launch, navigate tabs, switch agents, send responses",
   "Category": "Kiro",
@@ -71,8 +71,15 @@
       "Icon": "imgs/actions/focus-kiro/icon",
       "Tooltip": "Launch a new session of kiro-cli, Claude Code, Amazon Quick, or Claude",
       "PropertyInspectorPath": "ui/launch-target.html",
-      "Controllers": ["Keypad"],
-      "States": [{ "Image": "imgs/actions/focus-kiro/key", "TitleAlignment": "bottom" }]
+      "Controllers": [
+        "Keypad"
+      ],
+      "States": [
+        {
+          "Image": "imgs/actions/focus-kiro/key",
+          "TitleAlignment": "bottom"
+        }
+      ]
     },
     {
       "UUID": "wtf.sauhsoj.streamdecker.focus-target",
@@ -80,8 +87,15 @@
       "Icon": "imgs/actions/focus-kiro/icon",
       "Tooltip": "Bring kiro-cli, Claude Code, Amazon Quick, or Claude to the front",
       "PropertyInspectorPath": "ui/focus-target.html",
-      "Controllers": ["Keypad"],
-      "States": [{ "Image": "imgs/actions/focus-kiro/key", "TitleAlignment": "bottom" }]
+      "Controllers": [
+        "Keypad"
+      ],
+      "States": [
+        {
+          "Image": "imgs/actions/focus-kiro/key",
+          "TitleAlignment": "bottom"
+        }
+      ]
     },
     {
       "UUID": "wtf.sauhsoj.streamdecker.focus-kiro",
